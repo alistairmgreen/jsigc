@@ -22,10 +22,17 @@ $(document).ready(function() {
 					data: pressureBarogramData}, {
 					label: 'GPS altitude',
 				    data: gpsBarogramData}], {
+					 axisLabels: {
+					    show: true
+					 },
 				     xaxis: {
 						mode: 'time',
-                        timeformat: '%H:%M:%S'
-                     }
+                        timeformat: '%H:%M:%S',
+						axisLabel: 'Time'
+                     },
+					 yaxis: {
+					    axisLabel: 'Altitude / metres'
+					 }
 				 });
 			  } catch (e) {
 			    if (e instanceof IGCException) {
