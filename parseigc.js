@@ -29,7 +29,6 @@ function parseIGC(igcFile) {
    }
    
    var flightDate = extractDate(igcFile);
-   console.log('Date = ' + flightDate.toISOString());
    model.headers["Date"] = flightDate;
    
    var lineIndex;
