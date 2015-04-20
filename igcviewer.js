@@ -8,17 +8,23 @@ $(document).ready(function() {
 		         var model = parseIGC(this.result);
 				 var nPoints = model.recordTime.length;
 				 var pressureBarogramData = [];
+				 var gpsBarogramData = [];
 				 var j;
 				 var timestamp;
 				 for (j = 0; j < nPoints; j++) {
 				     timestamp = model.recordTime[j].getTime();
-				     pressureBarogramData.push([timestamp, model.pressureAltitude[j]]); 
+				     pressureBarogramData.push([timestamp, model.pressureAltitude[j]]);
+                     gpsBarogramData.push([timestamp, model.gpsAltitude[j]]);					 
 				 }
 				 
-				 $('#barograph').plot([pressureBarogramData], {
+				 $('#barograph').plot([{
+					label: 'Pressure altitude',
+					data: pressureBarogramData}, {
+					label: 'GPS altitude',
+				    data: gpsBarogramData}], {
 				     xaxis: {
-						mode: "time",
-                        timeformat: "%H:%M:%S"
+						mode: 'time',
+                        timeformat: '%H:%M:%S'
                      }
 				 });
 			  } catch (e) {
