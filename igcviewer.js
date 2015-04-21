@@ -66,7 +66,7 @@ $(document).ready(function() {
 				     xaxis: {
 						mode: 'time',
                         timeformat: '%H:%M:%S',
-						axisLabel: 'Time'
+						axisLabel: 'Time (UTC)'
                      },
 					 yaxis: {
 					    axisLabel: 'Altitude / metres'
