@@ -1,22 +1,18 @@
 $(document).ready(function() {
-   
+   var mapControl = L.map('map');
    var trackLayer; // Map layer which glider's track will be drawn onto
    var mapQuestAttribution = ' | Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">';
    var osmLayer = L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpg', {
                                    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
                                                 + mapQuestAttribution,
                                    maxZoom: 18
-                            });
+                            }).addTo(mapControl);
    
    var photoLayer = L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.jpg', {
                                    attribution: 'Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency'
                                                 + mapQuestAttribution,
                                    maxZoom: 11
                                 });
-   
-   var mapControl = L.map('map', {
-       layers: [osmLayer, photoLayer]
-   });
    
    var baseLayers = {
        'MapQuest OpenStreetMap': osmLayer,
