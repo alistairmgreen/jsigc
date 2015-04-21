@@ -16,8 +16,7 @@ function parseIGC(igcFile) {
    var model = {
        headers: {},
 	   recordTime: [],
-	   latitude: [],
-	   longitude: [],
+	   latLong: [],
 	   pressureAltitude: [],
 	   gpsAltitude: []
    };
@@ -41,6 +40,7 @@ function parseIGC(igcFile) {
 		    positionData = parsePosition(igcLines[lineIndex]);
 			if (positionData) {
 			   model.recordTime.push(positionData.recordTime);
+			   model.latLong.push(positionData.latLong);
 			   model.pressureAltitude.push(positionData.pressureAltitude);
 			   model.gpsAltitude.push(positionData.gpsAltitude);
 			}
@@ -78,15 +78,38 @@ function parseIGC(igcFile) {
 	   // Hours, minutes, seconds, latitude, N or S, longitude, E or W,
 	   // Fix validity ('A' = 3D fix, 'V' = 2D or no fix),
 	   // pressure altitude, GPS altitude.
-	   var positionRegex = /^B([\d]{2})([\d]{2})([\d]{2})([\d]{7})([NS])([\d]{8})([EW])([AV])([\d]{5})([\d]{5})/;
+	   // Latitude and longitude are in degrees and minutes, with the minutes
+	   // value multiplied by 1000 so that no decimal point is needed.
+	   //                       hours   minutes  seconds  degrees  minutes  N/S   degrees  minutes  E/W         press alt  gps alt
+	   var positionRegex = /^B([\d]{2})([\d]{2})([\d]{2})([\d]{2})([\d]{5})([NS])([\d]{3})([\d]{5})([EW])([AV])([\d]{5})([\d]{5})/;
 	   var positionMatch = positionRecord.match(positionRegex);
 	   if (positionMatch) {
-	       var positionTime = new Date(flightDate.getTime());
+	       // Convert the time to a date and time. Start by making a clone of the date
+		   // object that represents the date given in the headers:
+		   var positionTime = new Date(flightDate.getTime());
 		   positionTime.setUTCHours(parseInt(positionMatch[1]), parseInt(positionMatch[2]), parseInt(positionMatch[3]));
+		   // If the flight crosses midnight (UTC) then we now have a time that is 24 hours out.
+		   // We know that this is the case if the time is earlier than the one for the previous position fix.
+		   if (model.recordTime.length > 0
+		       && model.recordTime[model.recordTime.length - 1] > positionTime) {
+		        positionTime.setDate(flightDate.getDate() + 1);
+		   }
+		   
+		   var latitude = parseFloat(positionMatch[4]) + parseFloat(positionMatch[5]) / 60000.0;
+		   if (positionMatch[6] === 'S') {
+		      latitude = -latitude;
+		   }
+		   
+		   var longitude = parseFloat(positionMatch[7]) + parseFloat(positionMatch[8]) / 60000.0;
+		   if (positionMatch[9] === 'W') {
+		      longitude = -longitude;
+		   }
+		   
 	       return {
 		       recordTime: positionTime,
-		       pressureAltitude: parseInt(positionMatch[9]),
-			   gpsAltitude: parseInt(positionMatch[10])
+			   latLong: [latitude, longitude],
+		       pressureAltitude: parseInt(positionMatch[11]),
+			   gpsAltitude: parseInt(positionMatch[12])
 		   };
 	   }
    }
