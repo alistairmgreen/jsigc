@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
 	<title>IGC Viewer</title>
 	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <link rel="stylesheet" href="igcviewer.css" />
 </head>
 <body>
     <h1> IGC Viewer </h1>
@@ -13,19 +14,21 @@
 		</p>
 	</noscript>
 	
+    <label for="fileControl">Select a file to view:</label>
 	<input id="fileControl" type="file" />
 	
 	<div id="errorMessage">
 	</div>
 	
-	<div id="map" style="width: 800px; height: 600px"></div>
+	<div id="map"></div>
 	
-	<div id="barograph" style="width: 800px; height: 600px"></div>
+	<div id="barograph"></div>
 	
 	<script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
 	<script src="lib/jquery.flot.min.js"></script>
 	<script src="lib/jquery.flot.time.min.js"></script>
 	<script src="lib/jquery.flot.axislabels.js"></script>
+    <script src="lib/jquery.flot.resize.min.js"></script>
 	<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
 	<script src="parseigc.js"></script>
 	<script src="igcviewer.js"></script>
