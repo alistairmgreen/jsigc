@@ -42,15 +42,13 @@ $(document).ready(function() {
 				     pressureBarogramData.push([timestamp, model.pressureAltitude[j]]);
                      gpsBarogramData.push([timestamp, model.gpsAltitude[j]]);					 
 				 }
-                 
+
                  var trackLine = L.polyline(model.latLong, {color: 'red'});
 				 trackLayer = L.layerGroup([
                      trackLine,
                      L.marker(model.latLong[0]).bindPopup('Takeoff'),
                      L.marker(model.latLong[model.latLong.length - 1]).bindPopup('Landing')
 				 ]).addTo(mapControl);
-				 
-				  mapControl.fitBounds(trackLine.getBounds()); 
 				 
 				 $('#barograph').plot([{
 					label: 'Pressure altitude',
@@ -69,6 +67,11 @@ $(document).ready(function() {
 					    axisLabel: 'Altitude / metres'
 					 }
 				 });
+                 
+                 // Reveal the map and graph. We have to do this before
+                 // setting the zoom level of the map.
+                 $('#igcFileDisplay').show();
+                 mapControl.fitBounds(trackLine.getBounds());
 			  } catch (e) {
 			    if (e instanceof IGCException) {
 				    $('#errorMessage').text(e.message);
