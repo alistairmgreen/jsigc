@@ -1,5 +1,7 @@
 $(document).ready(function() {
    var mapControl = L.map('map');
+   var trackLayer;
+   
    L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpg', {
                               attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">',
                               maxZoom: 18
@@ -11,6 +13,10 @@ $(document).ready(function() {
 		  reader.onload = function(e) {
 		      try {
 			     $('#errorMessage').text('');
+				 if (trackLayer) {
+				    mapControl.removeLayer(trackLayer);
+				 }
+				 
 		         var model = parseIGC(this.result);
 				 var nPoints = model.recordTime.length;
 				 var pressureBarogramData = [];
@@ -22,11 +28,15 @@ $(document).ready(function() {
 				     pressureBarogramData.push([timestamp, model.pressureAltitude[j]]);
                      gpsBarogramData.push([timestamp, model.gpsAltitude[j]]);					 
 				 }
-
-				 var gliderTrack = L.polyline(model.latLong, {color: 'red'}).addTo(mapControl);
-                 mapControl.fitBounds(gliderTrack.getBounds()); 
-				 L.marker(model.latLong[0]).addTo(mapControl).bindPopup('Takeoff');
-				 L.marker(model.latLong[model.latLong.length - 1]).addTo(mapControl).bindPopup('Landing');
+                 
+                 var trackLine = L.polyline(model.latLong, {color: 'red'});
+				 trackLayer = L.layerGroup([
+                     trackLine,
+                     L.marker(model.latLong[0]).bindPopup('Takeoff'),
+                     L.marker(model.latLong[model.latLong.length - 1]).bindPopup('Landing')
+				 ]).addTo(mapControl);
+				 
+				  mapControl.fitBounds(trackLine.getBounds()); 
 				 
 				 $('#barograph').plot([{
 					label: 'Pressure altitude',
