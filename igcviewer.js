@@ -26,6 +26,9 @@ $(document).ready(function() {
 				 var gliderTrack = L.polyline(model.latLong, {color: 'red'}).addTo(map);
                  map.fitBounds(gliderTrack.getBounds());
 				 
+				 L.marker(model.latLong[0]).addTo(map).bindPopup('Takeoff');
+				 L.marker(model.latLong[model.latLong.length - 1]).addTo(map).bindPopup('Landing');
+				 
 				 $('#barograph').plot([{
 					label: 'Pressure altitude',
 					data: pressureBarogramData}, {
