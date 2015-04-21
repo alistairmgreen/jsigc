@@ -49,7 +49,12 @@ $(document).ready(function() {
                      L.marker(model.latLong[0]).bindPopup('Takeoff'),
                      L.marker(model.latLong[model.latLong.length - 1]).bindPopup('Landing')
 				 ]).addTo(mapControl);
-				 
+                 
+				 // Reveal the map and graph. We have to do this before
+                 // setting the zoom level of the map or ploting the graph.
+                 $('#igcFileDisplay').show();
+                 mapControl.fitBounds(trackLine.getBounds());
+                 
 				 $('#barograph').plot([{
 					label: 'Pressure altitude',
 					data: pressureBarogramData}, {
@@ -66,12 +71,7 @@ $(document).ready(function() {
 					 yaxis: {
 					    axisLabel: 'Altitude / metres'
 					 }
-				 });
-                 
-                 // Reveal the map and graph. We have to do this before
-                 // setting the zoom level of the map.
-                 $('#igcFileDisplay').show();
-                 mapControl.fitBounds(trackLine.getBounds());
+				 }); 
 			  } catch (e) {
 			    if (e instanceof IGCException) {
 				    $('#errorMessage').text(e.message);
