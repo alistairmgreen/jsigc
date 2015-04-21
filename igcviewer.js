@@ -1,4 +1,10 @@
 $(document).ready(function() {
+   var mapControl = L.map('map');
+   L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpg', {
+                              attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">',
+                              maxZoom: 18
+                            }).addTo(mapControl);
+							
    $('#fileControl').change(function() {
       if (this.files.length > 0) {
 	      var reader = new FileReader();
@@ -16,18 +22,11 @@ $(document).ready(function() {
 				     pressureBarogramData.push([timestamp, model.pressureAltitude[j]]);
                      gpsBarogramData.push([timestamp, model.gpsAltitude[j]]);					 
 				 }
-				 
-				 var map = L.map('map');
-				 L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpg', {
-                              attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">',
-                              maxZoom: 18
-                            }).addTo(map);
-				 
-				 var gliderTrack = L.polyline(model.latLong, {color: 'red'}).addTo(map);
-                 map.fitBounds(gliderTrack.getBounds());
-				 
-				 L.marker(model.latLong[0]).addTo(map).bindPopup('Takeoff');
-				 L.marker(model.latLong[model.latLong.length - 1]).addTo(map).bindPopup('Landing');
+
+				 var gliderTrack = L.polyline(model.latLong, {color: 'red'}).addTo(mapControl);
+                 mapControl.fitBounds(gliderTrack.getBounds()); 
+				 L.marker(model.latLong[0]).addTo(mapControl).bindPopup('Takeoff');
+				 L.marker(model.latLong[model.latLong.length - 1]).addTo(mapControl).bindPopup('Landing');
 				 
 				 $('#barograph').plot([{
 					label: 'Pressure altitude',
