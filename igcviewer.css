@@ -19,3 +19,12 @@ body {
 #igcFileDisplay {
    display: none;
 }
+
+table#headerInfo {
+    border-spacing: 1em 0;
+}
+
+#headerInfo th {
+   text-align: left;
+   font-weight: bold;
+}

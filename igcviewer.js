@@ -34,12 +34,14 @@ $(document).ready(function() {
 		         var model = parseIGC(this.result);
                  
                  // Display the headers.
-                 var headerList = $('#headerInfo');
-                 headerList.html('');
+                 var headerTable = $('#headerInfo tbody');
+                 headerTable.html('');
                  var headerName;
                  for (headerName in model.headers) {
-                    $('<dt></dt>').text(headerName).appendTo(headerList);
-                    $('<dd></dd>').text(model.headers[headerName]).appendTo(headerList);
+                    headerTable.append(
+                        $('<tr></tr>').append($('<th></th>').text(headerName))
+                                      .append($('<td></td>').text(model.headers[headerName]))
+                    );
                  }
                  
                  // Set up the barogram.
