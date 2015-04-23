@@ -32,6 +32,17 @@ $(document).ready(function() {
 				 }
 				 
 		         var model = parseIGC(this.result);
+                 
+                 // Display the headers.
+                 var headerList = $('#headerInfo');
+                 headerList.html('');
+                 var headerName;
+                 for (headerName in model.headers) {
+                    $('<dt></dt>').text(headerName).appendTo(headerList);
+                    $('<dd></dd>').text(model.headers[headerName]).appendTo(headerList);
+                 }
+                 
+                 // Set up the barogram.
 				 var nPoints = model.recordTime.length;
 				 var pressureBarogramData = [];
 				 var gpsBarogramData = [];
@@ -42,7 +53,8 @@ $(document).ready(function() {
 				     pressureBarogramData.push([timestamp, model.pressureAltitude[j]]);
                      gpsBarogramData.push([timestamp, model.gpsAltitude[j]]);					 
 				 }
-
+                 
+                 // Draw the map.
                  var trackLine = L.polyline(model.latLong, {color: 'red'});
 				 trackLayer = L.layerGroup([
                      trackLine,

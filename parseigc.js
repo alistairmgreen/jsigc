@@ -26,29 +26,74 @@ function parseIGC(igcFile) {
    if (!/^A[\w]{6}/.test(igcLines[0])) {
        throw new IGCException(invalidFileMessage);
    }
+   parseManufacturer(igcLines[0]);
    
    var flightDate = extractDate(igcFile);
-   model.headers["Date"] = flightDate;
+   model.headers["Date"] = flightDate.toDateString();
    
    var lineIndex;
    var positionData;
    var recordType;
+   var currentLine;
    for (lineIndex = 0; lineIndex < igcLines.length; lineIndex++) {
-      recordType = igcLines[lineIndex].charAt(0);
+      currentLine = igcLines[lineIndex]
+      recordType = currentLine.charAt(0);
 	  switch(recordType) {
 	    case 'B':
-		    positionData = parsePosition(igcLines[lineIndex]);
+		    positionData = parsePosition(currentLine);
 			if (positionData) {
 			   model.recordTime.push(positionData.recordTime);
 			   model.latLong.push(positionData.latLong);
 			   model.pressureAltitude.push(positionData.pressureAltitude);
 			   model.gpsAltitude.push(positionData.gpsAltitude);
 			}
-		break;
+		    break;
+        
+        case 'H':
+            parseHeader(currentLine);
+            break;
 	  }
    }
    
    return model;
+   
+   // Looks up the manufacturer name corresponding to
+   // the three letter code in the first line of the IGC file
+   // (the 'A' record).
+   function parseManufacturer(aRecord) {
+       var manufacturers = {
+           'GCS': 'Garrecht',
+           'CAM': 'Cambridge Aero Instruments',
+           'DSX': 'Data Swan',
+           'EWA': 'EW Avionics',
+           'FIL': 'Filser',
+           'FLA': 'FLARM',
+           'SCH': 'Scheffel',
+           'ACT': 'Aircotec',
+           'NKL': 'Nielsen Kellerman',
+           'LXN': 'LX Navigation',
+           'IMI': 'IMI Gliding Equipment',
+           'NTE': 'New Technologies s.r.l.',
+           'PES': 'Peschges',
+           'PRT': 'Print Technik',
+           'SDI': 'Streamline Data Instruments',
+           'TRI': 'Triadis Engineering GmbH',
+           'LXV': 'LXNAV d.o.o.',
+           'WES': 'Westerboer',
+           'XCS': 'XCSoar',
+           'ZAN': 'Zander'
+       };
+       
+       var manufacturerCode = aRecord.substring(1, 4);
+       if (manufacturers[manufacturerCode]) {
+           model.headers['Logger manufacturer'] = manufacturers[manufacturerCode];
+       }
+       else {
+           model.headers['Logger manufacturer'] = 'Unknown';
+       }
+       
+       model.headers['Logger serial number'] = aRecord.substring(4);
+   }
    
    // Extracts the flight date from the IGC file.
    function extractDate(igcFile) {
@@ -71,6 +116,35 @@ function parseIGC(igcFile) {
 		   year += 1900;
 	   }
 	   return new Date(Date.UTC(year, month, day));
+   }
+   
+   function parseHeader(headerRecord) {       
+       var headerSubtypes = {
+           'PLT': 'Pilot',
+           'CM2': 'Crew member 2',
+           'GTY': 'Glider type',
+           'GID': 'Glider ID',
+           'DTM': 'GPS Datum',
+           'RFW': 'Firmware version',
+           'RHW': 'Hardware version',
+           'FTY': 'Flight recorder type',
+           'GPS': 'GPS',
+           'PRS': 'Pressure sensor',
+           'FRS': 'Security suspect, use validation program',
+           'CID': 'Competition ID',
+           'CCL': 'Competition class'
+       };
+       
+       var headerName = headerSubtypes[headerRecord.substring(2, 5)];
+       if (headerName !== undefined) {
+           var colonIndex = headerRecord.indexOf(':');
+           if (colonIndex !== -1) {
+               var headerValue = headerRecord.substring(colonIndex + 1);
+               if (headerValue.length > 0 && /[^\s]+/.test(headerValue)) {
+                   model.headers[headerName] = headerValue;
+               }
+           }
+       }
    }
    
    function parsePosition(positionRecord){
