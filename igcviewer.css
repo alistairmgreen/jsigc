@@ -3,10 +3,33 @@ body {
 }
 
 #map, #barograph {
-   width: 100%;
-   height: 600px;
-   margin-top: 30px;
-   margin-bottom: 30px;
+    height: 600px;
+    margin-top: 30px;
+    margin-bottom: 30px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media print, screen and (max-width: 1400px) {
+    #map, #barograph {
+       width: 90%;
+       display: block;
+       position: relative;
+    }
+}
+@media screen and (min-width: 1400px) {
+    #map, #barograph {
+        display: inline-block;
+        width: calc(50% - 30px);
+    }
+    
+    #map {
+        margin-left: 30px;
+    }
+    
+    #barograph {
+        float: right;
+    }
 }
 
 #errorMessage {
