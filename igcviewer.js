@@ -79,7 +79,7 @@ $(document).ready(function() {
 					 },
 				     xaxis: {
 						mode: 'time',
-                        timeformat: '%H:%M:%S',
+                        timeformat: '%H:%M',
 						axisLabel: 'Time (UTC)'
                      },
 					 yaxis: {
