@@ -4,6 +4,7 @@ body {
 
 #map, #barograph {
     height: 90vh;
+    max-height: 110vw;
     margin-top: 30px;
     margin-bottom: 30px;
     margin-left: auto;
