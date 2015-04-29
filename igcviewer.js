@@ -20,6 +20,7 @@ $(document).ready(function() {
    };
    
    L.control.layers(baseLayers).addTo(mapControl);
+   L.control.scale().addTo(mapControl);
 							
    $('#fileControl').change(function() {
       if (this.files.length > 0) {
