@@ -48,62 +48,7 @@
             }
 
             var model = parseIGC(this.result);
-
-            // Display the headers.
-            var headerTable = $('#headerInfo tbody');
-            headerTable.html('');
-            var headerName;
-            for (headerName in model.headers) {
-                headerTable.append(
-                    $('<tr></tr>').append($('<th></th>').text(headerName))
-                                  .append($('<td></td>').text(model.headers[headerName]))
-                );
-            }
-
-            // Set up the barogram.
-            var nPoints = model.recordTime.length;
-            var pressureBarogramData = [];
-            var gpsBarogramData = [];
-            var j;
-            var timestamp;
-            for (j = 0; j < nPoints; j++) {
-                timestamp = model.recordTime[j].getTime();
-                pressureBarogramData.push([timestamp, model.pressureAltitude[j]]);
-                gpsBarogramData.push([timestamp, model.gpsAltitude[j]]);
-            }
-
-            // Draw the map.
-            var trackLine = L.polyline(model.latLong, { color: 'red' });
-            map.layers.track = L.layerGroup([
-                trackLine,
-                L.marker(model.latLong[0]).bindPopup('Takeoff'),
-                L.marker(model.latLong[model.latLong.length - 1]).bindPopup('Landing')
-            ]).addTo(map.control);
-
-            // Reveal the map and graph. We have to do this before
-            // setting the zoom level of the map or ploting the graph.
-            $('#igcFileDisplay').show();
-            map.control.fitBounds(trackLine.getBounds());
-
-            $('#barograph').plot([{
-                label: 'Pressure altitude',
-                data: pressureBarogramData
-            }, {
-                label: 'GPS altitude',
-                data: gpsBarogramData
-            }], {
-                axisLabels: {
-                    show: true
-                },
-                xaxis: {
-                    mode: 'time',
-                    timeformat: '%H:%M',
-                    axisLabel: 'Time (UTC)'
-                },
-                yaxis: {
-                    axisLabel: 'Altitude / metres'
-                }
-            });
+            displayIgc(model);
         } catch (e) {
             if (e instanceof IGCException) {
                 $('#errorMessage').text(e.message);
@@ -113,4 +58,66 @@
             }
         }
     }
+
+    function displayIgc(igcFile) {
+        // Display the headers.
+        var headerTable = $('#headerInfo tbody');
+        headerTable.html('');
+        var headerName;
+        for (headerName in igcFile.headers) {
+            headerTable.append(
+                $('<tr></tr>').append($('<th></th>').text(headerName))
+                              .append($('<td></td>').text(igcFile.headers[headerName]))
+            );
+        }
+     
+        // Draw the map.
+        var trackLine = L.polyline(igcFile.latLong, { color: 'red' });
+        map.layers.track = L.layerGroup([
+            trackLine,
+            L.marker(igcFile.latLong[0]).bindPopup('Takeoff'),
+            L.marker(igcFile.latLong[igcFile.latLong.length - 1]).bindPopup('Landing')
+        ]).addTo(map.control);
+
+        // Reveal the map and graph. We have to do this before
+        // setting the zoom level of the map or ploting the graph.
+        $('#igcFileDisplay').show();
+        map.control.fitBounds(trackLine.getBounds());
+
+        plotBarogram(igcFile);
+    }
+
+    function plotBarogram(igcFile) {
+        var nPoints = igcFile.recordTime.length;
+        var pressureBarogramData = [];
+        var gpsBarogramData = [];
+        var j;
+        var timestamp;
+        for (j = 0; j < nPoints; j++) {
+            timestamp = igcFile.recordTime[j].getTime();
+            pressureBarogramData.push([timestamp, igcFile.pressureAltitude[j]]);
+            gpsBarogramData.push([timestamp, igcFile.gpsAltitude[j]]);
+        }
+
+        $('#barogram').plot([{
+            label: 'Pressure altitude',
+            data: pressureBarogramData
+        }, {
+            label: 'GPS altitude',
+            data: gpsBarogramData
+        }], {
+            axisLabels: {
+                show: true
+            },
+            xaxis: {
+                mode: 'time',
+                timeformat: '%H:%M',
+                axisLabel: 'Time (UTC)'
+            },
+            yaxis: {
+                axisLabel: 'Altitude / metres'
+            }
+        });
+    }
+
 })(jQuery);
