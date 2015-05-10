@@ -34,7 +34,7 @@ var mapControl = (function ($) {
         reset: function () {
             // Clear any existing track data so that a new file can be loaded.
             if (mapLayers.track) {
-                map.layers.remove(mapLayers.track);
+                map.removeLayer(mapLayers.track);
                 layersControl.removeLayer(mapLayers.track);
             }
         },
