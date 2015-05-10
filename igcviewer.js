@@ -1,35 +1,6 @@
 (function ($) {
-
-    // Object holding the Leaflet.js map control and references to the map layers:
-    var map = {
-        control: {},
-        layers: {
-            osm: {},
-            photo: {},
-            track: {}
-        }
-    };
-
     $(document).ready(function () {
-        map.control = L.map('map');
-        var mapQuestAttribution = ' | Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">';
-        map.layers.osm = L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpg', {
-            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
-                         + mapQuestAttribution,
-            maxZoom: 18
-        }).addTo(map.control);
-
-        map.layers.photo = L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.jpg', {
-            attribution: 'Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency'
-                         + mapQuestAttribution,
-            maxZoom: 11
-        });
-
-        L.control.layers({
-            'MapQuest OpenStreetMap': map.layers.osm,
-            'MapQuest Open Aerial (Photo)': map.layers.photo
-        }).addTo(map.control);
-        L.control.scale().addTo(map.control);
+        mapControl.initialise('map');
 
         $('#fileControl').change(function () {
             if (this.files.length > 0) {
@@ -43,9 +14,7 @@
     function loadIgc(e) {
         try {
             $('#errorMessage').text('');
-            if (map.layers.track) {
-                map.control.removeLayer(map.layers.track);
-            }
+            mapControl.reset();
 
             var model = parseIGC(this.result);
             displayIgc(model);
@@ -70,20 +39,12 @@
                               .append($('<td></td>').text(igcFile.headers[headerName]))
             );
         }
-     
-        // Draw the map.
-        var trackLine = L.polyline(igcFile.latLong, { color: 'red' });
-        map.layers.track = L.layerGroup([
-            trackLine,
-            L.marker(igcFile.latLong[0]).bindPopup('Takeoff'),
-            L.marker(igcFile.latLong[igcFile.latLong.length - 1]).bindPopup('Landing')
-        ]).addTo(map.control);
 
         // Reveal the map and graph. We have to do this before
         // setting the zoom level of the map or ploting the graph.
         $('#igcFileDisplay').show();
-        map.control.fitBounds(trackLine.getBounds());
 
+        mapControl.addTrack(igcFile.latLong);
         plotBarogram(igcFile);
     }
 
