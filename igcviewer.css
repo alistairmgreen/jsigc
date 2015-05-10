@@ -13,21 +13,22 @@ body {
 
 @media print, screen and (max-width: 1100px) {
     #map, #barograph {
-       width: 90%;
-       display: block;
-       position: relative;
+        width: 90%;
+        display: block;
+        position: relative;
     }
 }
+
 @media screen and (min-width: 1100px) {
     #map, #barograph {
         display: inline-block;
         width: calc(50% - 30px);
     }
-    
+
     #map {
         margin-left: 30px;
     }
-    
+
     #barograph {
         position: absolute;
         right: 0px;
@@ -35,14 +36,14 @@ body {
 }
 
 #errorMessage {
-   font-weight: bold;
-   color: Red;
-   margin-top: 30px;
-   margin-bottom: 30px; 
+    font-weight: bold;
+    color: Red;
+    margin-top: 30px;
+    margin-bottom: 30px;
 }
 
 #igcFileDisplay {
-   display: none;
+    display: none;
 }
 
 table#headerInfo {
@@ -50,6 +51,6 @@ table#headerInfo {
 }
 
 #headerInfo th {
-   text-align: left;
-   font-weight: bold;
+    text-align: left;
+    font-weight: bold;
 }
