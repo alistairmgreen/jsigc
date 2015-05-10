@@ -48,16 +48,19 @@
             for (j = 0; j < igcFile.task.names.length; j++) {
                 taskList.append($('<li></li>').text(igcFile.task.names[j]));
             }
+
+            mapControl.addTask(igcFile.task.coordinates, igcFile.task.names);
         }
         else {
             $('#task').hide();
         }
 
         // Reveal the map and graph. We have to do this before
-        // setting the zoom level of the map or ploting the graph.
+        // setting the zoom level of the map or plotting the graph.
         $('#igcFileDisplay').show();
 
         mapControl.addTrack(igcFile.latLong);
+
         plotBarogram(igcFile);
     }
 

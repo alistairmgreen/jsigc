@@ -1,4 +1,5 @@
-// Wrapper for the leaflet.js map control.
+// Wrapper for the leaflet.js map control with methods
+// to manage the map layers.
 var mapControl = (function ($) {
     var map;
 
@@ -37,6 +38,11 @@ var mapControl = (function ($) {
                 map.removeLayer(mapLayers.track);
                 layersControl.removeLayer(mapLayers.track);
             }
+
+            if (mapLayers.task) {
+                map.removeLayer(mapLayers.task);
+                layersControl.removeLayer(mapLayers.task);
+            }
         },
 
         addTrack: function (latLong) {
@@ -49,6 +55,12 @@ var mapControl = (function ($) {
             layersControl.addOverlay(mapLayers.track, 'Flight path');
 
             map.fitBounds(trackLine.getBounds());
+        },
+
+        addTask: function (coordinates, names) {
+            mapLayers.task = L.polyline(coordinates, { color: 'blue' });
+            mapLayers.task.addTo(map);
+            layersControl.addOverlay(mapLayers.task, 'Task');
         }
     };
 }(jQuery));
