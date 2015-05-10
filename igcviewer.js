@@ -1,104 +1,116 @@
-$(document).ready(function () {
-    var mapControl = L.map('map');
-    var trackLayer; // Map layer which glider's track will be drawn onto
-    var mapQuestAttribution = ' | Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">';
-    var osmLayer = L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpg', {
-        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
-                     + mapQuestAttribution,
-        maxZoom: 18
-    }).addTo(mapControl);
+(function ($) {
 
-    var photoLayer = L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.jpg', {
-        attribution: 'Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency'
-                     + mapQuestAttribution,
-        maxZoom: 11
-    });
-
-    var baseLayers = {
-        'MapQuest OpenStreetMap': osmLayer,
-        'MapQuest Open Aerial (Photo)': photoLayer
+    // Object holding the Leaflet.js map control and references to the map layers:
+    var map = {
+        control: {},
+        layers: {
+            osm: {},
+            photo: {},
+            track: {}
+        }
     };
 
-    L.control.layers(baseLayers).addTo(mapControl);
-    L.control.scale().addTo(mapControl);
+    $(document).ready(function () {
+        map.control = L.map('map');
+        var mapQuestAttribution = ' | Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">';
+        map.layers.osm = L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpg', {
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
+                         + mapQuestAttribution,
+            maxZoom: 18
+        }).addTo(map.control);
 
-    $('#fileControl').change(function () {
-        if (this.files.length > 0) {
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                try {
-                    $('#errorMessage').text('');
-                    if (trackLayer) {
-                        mapControl.removeLayer(trackLayer);
-                    }
+        map.layers.photo = L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.jpg', {
+            attribution: 'Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency'
+                         + mapQuestAttribution,
+            maxZoom: 11
+        });
 
-                    var model = parseIGC(this.result);
+        L.control.layers({
+            'MapQuest OpenStreetMap': map.layers.osm,
+            'MapQuest Open Aerial (Photo)': map.layers.photo
+        }).addTo(map.control);
+        L.control.scale().addTo(map.control);
 
-                    // Display the headers.
-                    var headerTable = $('#headerInfo tbody');
-                    headerTable.html('');
-                    var headerName;
-                    for (headerName in model.headers) {
-                        headerTable.append(
-                            $('<tr></tr>').append($('<th></th>').text(headerName))
-                                          .append($('<td></td>').text(model.headers[headerName]))
-                        );
-                    }
-
-                    // Set up the barogram.
-                    var nPoints = model.recordTime.length;
-                    var pressureBarogramData = [];
-                    var gpsBarogramData = [];
-                    var j;
-                    var timestamp;
-                    for (j = 0; j < nPoints; j++) {
-                        timestamp = model.recordTime[j].getTime();
-                        pressureBarogramData.push([timestamp, model.pressureAltitude[j]]);
-                        gpsBarogramData.push([timestamp, model.gpsAltitude[j]]);
-                    }
-
-                    // Draw the map.
-                    var trackLine = L.polyline(model.latLong, { color: 'red' });
-                    trackLayer = L.layerGroup([
-                        trackLine,
-                        L.marker(model.latLong[0]).bindPopup('Takeoff'),
-                        L.marker(model.latLong[model.latLong.length - 1]).bindPopup('Landing')
-                    ]).addTo(mapControl);
-
-                    // Reveal the map and graph. We have to do this before
-                    // setting the zoom level of the map or ploting the graph.
-                    $('#igcFileDisplay').show();
-                    mapControl.fitBounds(trackLine.getBounds());
-
-                    $('#barograph').plot([{
-                        label: 'Pressure altitude',
-                        data: pressureBarogramData
-                    }, {
-                        label: 'GPS altitude',
-                        data: gpsBarogramData
-                    }], {
-                        axisLabels: {
-                            show: true
-                        },
-                        xaxis: {
-                            mode: 'time',
-                            timeformat: '%H:%M',
-                            axisLabel: 'Time (UTC)'
-                        },
-                        yaxis: {
-                            axisLabel: 'Altitude / metres'
-                        }
-                    });
-                } catch (e) {
-                    if (e instanceof IGCException) {
-                        $('#errorMessage').text(e.message);
-                    }
-                    else {
-                        throw e;
-                    }
-                }
-            };
-            reader.readAsText(this.files[0]);
-        }
+        $('#fileControl').change(function () {
+            if (this.files.length > 0) {
+                var reader = new FileReader();
+                reader.onload = loadIgc;
+                reader.readAsText(this.files[0]);
+            }
+        });
     });
-});
+
+    function loadIgc(e) {
+        try {
+            $('#errorMessage').text('');
+            if (map.layers.track) {
+                map.control.removeLayer(map.layers.track);
+            }
+
+            var model = parseIGC(this.result);
+
+            // Display the headers.
+            var headerTable = $('#headerInfo tbody');
+            headerTable.html('');
+            var headerName;
+            for (headerName in model.headers) {
+                headerTable.append(
+                    $('<tr></tr>').append($('<th></th>').text(headerName))
+                                  .append($('<td></td>').text(model.headers[headerName]))
+                );
+            }
+
+            // Set up the barogram.
+            var nPoints = model.recordTime.length;
+            var pressureBarogramData = [];
+            var gpsBarogramData = [];
+            var j;
+            var timestamp;
+            for (j = 0; j < nPoints; j++) {
+                timestamp = model.recordTime[j].getTime();
+                pressureBarogramData.push([timestamp, model.pressureAltitude[j]]);
+                gpsBarogramData.push([timestamp, model.gpsAltitude[j]]);
+            }
+
+            // Draw the map.
+            var trackLine = L.polyline(model.latLong, { color: 'red' });
+            map.layers.track = L.layerGroup([
+                trackLine,
+                L.marker(model.latLong[0]).bindPopup('Takeoff'),
+                L.marker(model.latLong[model.latLong.length - 1]).bindPopup('Landing')
+            ]).addTo(map.control);
+
+            // Reveal the map and graph. We have to do this before
+            // setting the zoom level of the map or ploting the graph.
+            $('#igcFileDisplay').show();
+            map.control.fitBounds(trackLine.getBounds());
+
+            $('#barograph').plot([{
+                label: 'Pressure altitude',
+                data: pressureBarogramData
+            }, {
+                label: 'GPS altitude',
+                data: gpsBarogramData
+            }], {
+                axisLabels: {
+                    show: true
+                },
+                xaxis: {
+                    mode: 'time',
+                    timeformat: '%H:%M',
+                    axisLabel: 'Time (UTC)'
+                },
+                yaxis: {
+                    axisLabel: 'Altitude / metres'
+                }
+            });
+        } catch (e) {
+            if (e instanceof IGCException) {
+                $('#errorMessage').text(e.message);
+            }
+            else {
+                throw e;
+            }
+        }
+    }
+})(jQuery);
