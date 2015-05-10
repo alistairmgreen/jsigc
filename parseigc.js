@@ -231,10 +231,33 @@ function parseIGC(igcFile) {
     function parseTask(taskRecord) {
         var taskRegex = /^C([\d]{7}[NS][\d]{8}[EW])(.*)/;
         var taskMatch = taskRecord.match(taskRegex);
+        var degreeSymbol = '\u00B0';
+        
         if (taskMatch) {
+            var name = taskMatch[2];
+
+            // If the turnpoint name is blank, use the latitude and longitude.
+            if (name.trim().length === 0) {
+                name = taskRecord.substring(1, 3)
+                + degreeSymbol
+                + taskRecord.substring(3, 5)
+                + '.'
+                + taskRecord.substring(5, 8)
+                + "' "
+                + taskRecord.charAt(8)
+                + ', '
+                + taskRecord.substring(9, 12)
+                + degreeSymbol
+                + taskRecord.substring(12, 14)
+                + '.'
+                + taskRecord.substring(14, 17)
+                + "' "
+                + taskRecord.charAt(17);
+            }
+
             return {
                 latLong: parseLatLong(taskMatch[1]),
-                name: taskMatch[2]
+                name: name
             };
         }
     }
