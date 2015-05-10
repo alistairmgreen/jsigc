@@ -58,8 +58,12 @@ var mapControl = (function ($) {
         },
 
         addTask: function (coordinates, names) {
-            mapLayers.task = L.polyline(coordinates, { color: 'blue' });
-            mapLayers.task.addTo(map);
+            var taskLayers = [L.polyline(coordinates, { color: 'blue' })];
+            var j;
+            for (j = 0; j < coordinates.length; j++) {
+                taskLayers.push(L.marker(coordinates[j]).bindPopup(names[j]));
+            }
+            mapLayers.task = L.layerGroup(taskLayers).addTo(map);
             layersControl.addOverlay(mapLayers.task, 'Task');
         }
     };
