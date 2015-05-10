@@ -17,15 +17,16 @@ var mapControl = (function ($) {
         })
     };
 
+    var layersControl = L.control.layers({
+        'MapQuest OpenStreetMap': mapLayers.openStreetMap,
+        'MapQuest Open Aerial (Photo)': mapLayers.photo
+    });
+
     return {
         initialise: function (elementName) {
             map = L.map(elementName);
             mapLayers.openStreetMap.addTo(map);
-
-            L.control.layers({
-                'MapQuest OpenStreetMap': mapLayers.openStreetMap,
-                'MapQuest Open Aerial (Photo)': mapLayers.photo
-            }).addTo(map);
+            layersControl.addTo(map);
 
             L.control.scale().addTo(map);
         },
@@ -34,6 +35,7 @@ var mapControl = (function ($) {
             // Clear any existing track data so that a new file can be loaded.
             if (mapLayers.track) {
                 map.layers.remove(mapLayers.track);
+                layersControl.removeLayer(mapLayers.track);
             }
         },
 
@@ -44,6 +46,7 @@ var mapControl = (function ($) {
                 L.marker(latLong[0]).bindPopup('Takeoff'),
                 L.marker(latLong[latLong.length - 1]).bindPopup('Landing')
             ]).addTo(map);
+            layersControl.addOverlay(mapLayers.track, 'Flight path');
 
             map.fitBounds(trackLine.getBounds());
         }
