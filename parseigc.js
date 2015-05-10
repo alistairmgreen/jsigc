@@ -154,8 +154,8 @@ function parseIGC(igcFile) {
         // pressure altitude, GPS altitude.
         // Latitude and longitude are in degrees and minutes, with the minutes
         // value multiplied by 1000 so that no decimal point is needed.
-        //                       hours   minutes  seconds  degrees  minutes  N/S   degrees  minutes  E/W         press alt  gps alt
-        var positionRegex = /^B([\d]{2})([\d]{2})([\d]{2})([\d]{2})([\d]{5})([NS])([\d]{3})([\d]{5})([EW])([AV])([\d]{5})([\d]{5})/;
+        //                      hours    minutes  seconds  latitude    longitude        press alt  gps alt
+        var positionRegex = /^B([\d]{2})([\d]{2})([\d]{2})([\d]{7}[NS][\d]{8}[EW])([AV])([\d]{5})([\d]{5})/;
         var positionMatch = positionRecord.match(positionRegex);
         if (positionMatch) {
             // Convert the time to a date and time. Start by making a clone of the date
@@ -169,22 +169,31 @@ function parseIGC(igcFile) {
                 positionTime.setDate(flightDate.getDate() + 1);
             }
 
-            var latitude = parseFloat(positionMatch[4]) + parseFloat(positionMatch[5]) / 60000.0;
-            if (positionMatch[6] === 'S') {
-                latitude = -latitude;
-            }
-
-            var longitude = parseFloat(positionMatch[7]) + parseFloat(positionMatch[8]) / 60000.0;
-            if (positionMatch[9] === 'W') {
-                longitude = -longitude;
-            }
-
             return {
                 recordTime: positionTime,
-                latLong: [latitude, longitude],
-                pressureAltitude: parseInt(positionMatch[11]),
-                gpsAltitude: parseInt(positionMatch[12])
+                latLong: parseLatLong(positionMatch[4]),
+                pressureAltitude: parseInt(positionMatch[6]),
+                gpsAltitude: parseInt(positionMatch[7])
             };
         }
+    }
+
+    // Parses a latitude and longitude in the form:
+    // DDMMmmmNDDDMMmmmE
+    // where M = minutes and m = decimal places of minutes.
+    function parseLatLong(latLongString) {
+        var latitude = parseFloat(latLongString.substring(0, 2))
+            + parseFloat(latLongString.substring(2, 7)) / 60000.0;
+        if (latLongString.charAt(7) === 'S') {
+            latitude = -latitude;
+        }
+
+        var longitude = parseFloat(latLongString.substring(8, 11))
+            + parseFloat(latLongString.substring(11, 16)) / 60000.0;
+        if (latLongString.charAt(16) === 'W') {
+            longitude = -longitude;
+        }
+
+        return [latitude, longitude];
     }
 }
