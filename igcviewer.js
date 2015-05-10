@@ -40,6 +40,19 @@
             );
         }
 
+        // Show the task declaration if it is present.
+        if (igcFile.task.coordinates.length > 0) {
+            $('#task').show();
+            var taskList = $('#task ol').first().html('');
+            var j;
+            for (j = 0; j < igcFile.task.names.length; j++) {
+                taskList.append($('<li></li>').text(igcFile.task.names[j]));
+            }
+        }
+        else {
+            $('#task').hide();
+        }
+
         // Reveal the map and graph. We have to do this before
         // setting the zoom level of the map or ploting the graph.
         $('#igcFileDisplay').show();

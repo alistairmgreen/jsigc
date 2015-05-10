@@ -18,7 +18,11 @@ function parseIGC(igcFile) {
         recordTime: [],
         latLong: [],
         pressureAltitude: [],
-        gpsAltitude: []
+        gpsAltitude: [],
+        task: {
+            coordinates: [],
+            names: []
+        }
     };
 
     // The first line should begin with 'A' followed by
@@ -35,11 +39,12 @@ function parseIGC(igcFile) {
     var positionData;
     var recordType;
     var currentLine;
+    var turnpoint; // for task declaration lines
     for (lineIndex = 0; lineIndex < igcLines.length; lineIndex++) {
         currentLine = igcLines[lineIndex]
         recordType = currentLine.charAt(0);
         switch (recordType) {
-            case 'B':
+            case 'B': // Position fix
                 positionData = parsePosition(currentLine);
                 if (positionData) {
                     model.recordTime.push(positionData.recordTime);
@@ -49,9 +54,35 @@ function parseIGC(igcFile) {
                 }
                 break;
 
-            case 'H':
+            case 'C': // Task declaration
+                turnpoint = parseTask(currentLine);
+                if (turnpoint) {
+                    model.task.coordinates.push(turnpoint.latLong);
+                    model.task.names.push(turnpoint.name);
+                }
+                break;
+
+            case 'H': // Header information
                 parseHeader(currentLine);
                 break;
+        }
+    }
+
+    // If the file contains a declared task, then it may start or end with
+    // 'turnpoints' at 0 degrees N, 0 degrees E. These represent the takeoff
+    // and landing positions, which could not have been known at the time when
+    // the declaration was made. Replace them with the actual values so that
+    // the task can be plotted correctly on a map.
+
+    if (model.task.coordinates.length > 0) {
+        if (model.task.coordinates[0][0] === 0.0 && model.task.coordinates[0][1] === 0.0) {
+            model.task.coordinates[0] = model.latLong[0];
+            model.task.names[0] = 'Takeoff';
+        }
+        var lastTask = model.task.coordinates.length - 1;
+        if (model.task.coordinates[lastTask][0] === 0.0 && model.task.coordinates[lastTask][1] === 0.0) {
+            model.task.coordinates[lastTask] = model.latLong[model.latLong.length - 1];
+            model.task.names[lastTask] = 'Landing';
         }
     }
 
@@ -195,5 +226,16 @@ function parseIGC(igcFile) {
         }
 
         return [latitude, longitude];
+    }
+
+    function parseTask(taskRecord) {
+        var taskRegex = /^C([\d]{7}[NS][\d]{8}[EW])(.*)/;
+        var taskMatch = taskRecord.match(taskRegex);
+        if (taskMatch) {
+            return {
+                latLong: parseLatLong(taskMatch[1]),
+                name: taskMatch[2]
+            };
+        }
     }
 }
