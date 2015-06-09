@@ -9,6 +9,9 @@
                 reader.readAsText(this.files[0]);
             }
         });
+
+        $('#altitudeUnits').change(function () {
+        });
     });
 
     function loadIgc(e) {
@@ -70,10 +73,19 @@
         var gpsBarogramData = [];
         var j;
         var timestamp;
+        var altitudeUnit = $('#altitudeUnits').val();
+        var altitudeConversionFactor;
+        if (altitudeUnit === 'feet') {
+            altitudeConversionFactor = 3.2808399;
+        }
+        else {
+            altitudeConversionFactor = 1.0;
+        }
+
         for (j = 0; j < nPoints; j++) {
             timestamp = igcFile.recordTime[j].getTime();
-            pressureBarogramData.push([timestamp, igcFile.pressureAltitude[j]]);
-            gpsBarogramData.push([timestamp, igcFile.gpsAltitude[j]]);
+            pressureBarogramData.push([timestamp, igcFile.pressureAltitude[j] * altitudeConversionFactor]);
+            gpsBarogramData.push([timestamp, igcFile.gpsAltitude[j] * altitudeConversionFactor]);
         }
 
         $('#barogram').plot([{
@@ -92,7 +104,7 @@
                 axisLabel: 'Time (UTC)'
             },
             yaxis: {
-                axisLabel: 'Altitude / metres'
+                axisLabel: 'Altitude / ' + altitudeUnit
             }
         });
     }
