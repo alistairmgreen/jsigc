@@ -1,4 +1,6 @@
 (function ($) {
+    var igcFile = null;
+
     $(document).ready(function () {
         mapControl.initialise('map');
 
@@ -11,6 +13,9 @@
         });
 
         $('#altitudeUnits').change(function () {
+            if (igcFile !== null) {
+                plotBarogram();
+            }
         });
     });
 
@@ -19,8 +24,8 @@
             $('#errorMessage').text('');
             mapControl.reset();
 
-            var model = parseIGC(this.result);
-            displayIgc(model);
+            igcFile = parseIGC(this.result);
+            displayIgc();
         } catch (e) {
             if (e instanceof IGCException) {
                 $('#errorMessage').text(e.message);
@@ -31,7 +36,7 @@
         }
     }
 
-    function displayIgc(igcFile) {
+    function displayIgc() {
         // Display the headers.
         var headerTable = $('#headerInfo tbody');
         headerTable.html('');
@@ -67,7 +72,7 @@
         plotBarogram(igcFile);
     }
 
-    function plotBarogram(igcFile) {
+    function plotBarogram() {
         var nPoints = igcFile.recordTime.length;
         var pressureBarogramData = [];
         var gpsBarogramData = [];
