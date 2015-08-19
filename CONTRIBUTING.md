@@ -21,6 +21,21 @@ and add a ticket if none already exists.
 to download a copy of that file.
 - For visual flaws, please include a screenshot if you can.
 
+## Help with testing
+
+There are some important tests that I cannot do myself:
+
+### Compatibility:
+- Does it work on tablet devices?
+- Does it work on Apple Macs?
+
+### Time zones:
+
+IGC files always record the date and time as UTC. In countries with a large time offset from UTC, the
+flight may cross midnight and this has to be treated as a special case. However, all of the files
+that I have tried are from flights in the UK, so the code for dealing with mid-flight
+date changes is untested.
+
 ## If you are a programmer or web designer
 
 Code contributions are always welcome. If you are able to implement a new feature, fix a bug, or
