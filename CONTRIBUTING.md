@@ -13,6 +13,10 @@ If you find a bug, or would like to suggest a change, please check the [Issue Tr
 and add a ticket if none already exists.
 
 - Please apply a label to mark the issue as a bug, enhancement or question.
+- For bug reports, please indicate which browser you are using (e.g. Firefox / Chrome / Internet Explorer),
+  *including the version number.*
+    - If you have access to any other browsers, please try those as well. Does the bug affect all of them or is it
+      specific to just one particular browser?
 - If the bug is triggered by a particular IGC file, then it would be very helpful to include a link
 to download a copy of that file.
 - For visual flaws, please include a screenshot if you can.
