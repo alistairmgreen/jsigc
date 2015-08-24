@@ -33,8 +33,7 @@ function parseIGC(igcFile) {
     parseManufacturer(igcLines[0]);
 
     var flightDate = extractDate(igcFile);
-    model.headers["Date"] = flightDate.toDateString();
-
+    
     var lineIndex;
     var positionData;
     var recordType;
@@ -66,6 +65,19 @@ function parseIGC(igcFile) {
                 parseHeader(currentLine);
                 break;
         }
+    }
+    
+    // We want to show the flight date including the time.
+    // This is important because if we force the display to be UTC,
+    // the time is shown as well. The toDateString method gives a date
+    // without a time, but converts implicitly to local, causing the
+    // day to be incorrect if the system clock is set to a negative offset
+    // from UTC (issue #3).
+    if (model.recordTime.length > 0) {
+        model.headers["Date"] = model.recordTime[0].toUTCString();
+    }
+    else {
+        model.headers["Date"] = flightDate.toUTCString();
     }
 
     // If the file contains a declared task, then it may start or end with
