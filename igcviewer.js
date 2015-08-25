@@ -1,4 +1,6 @@
 (function ($) {
+   'use strict';
+
     var igcFile = null;
 
     $(document).ready(function () {
@@ -26,9 +28,9 @@
 
             igcFile = parseIGC(this.result);
             displayIgc();
-        } catch (e) {
-            if (e instanceof IGCException) {
-                $('#errorMessage').text(e.message);
+        } catch (ex) {
+            if (ex instanceof IGCException) {
+                $('#errorMessage').text(ex.message);
             }
             else {
                 throw e;
@@ -114,4 +116,4 @@
         });
     }
 
-})(jQuery);
+}(jQuery));

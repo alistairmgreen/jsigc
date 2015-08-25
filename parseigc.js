@@ -1,14 +1,18 @@
 function IGCException(message) {
+    'use strict';
+
     this.message = message;
     this.name = "IGCException";
 }
 
 function parseIGC(igcFile) {
+    'use strict';
+
     var invalidFileMessage = 'This does not appear to be an IGC file.';
     var igcLines = igcFile.split('\n');
     if (igcLines.length < 2) {
         throw new IGCException(invalidFileMessage);
-    };
+    }
 
     // Declare the model object that is to be returned;
     // this contains the position and altitude data and the header
@@ -27,20 +31,20 @@ function parseIGC(igcFile) {
 
     // The first line should begin with 'A' followed by
     // a 3-character manufacturer Id and a 3-character serial number.
-    if (!/^A[\w]{6}/.test(igcLines[0])) {
+    if (!(/^A[\w]{6}/).test(igcLines[0])) {
         throw new IGCException(invalidFileMessage);
     }
     parseManufacturer(igcLines[0]);
 
     var flightDate = extractDate(igcFile);
-    
+
     var lineIndex;
     var positionData;
     var recordType;
     var currentLine;
     var turnpoint; // for task declaration lines
     for (lineIndex = 0; lineIndex < igcLines.length; lineIndex++) {
-        currentLine = igcLines[lineIndex]
+        currentLine = igcLines[lineIndex];
         recordType = currentLine.charAt(0);
         switch (recordType) {
             case 'B': // Position fix
@@ -66,7 +70,7 @@ function parseIGC(igcFile) {
                 break;
         }
     }
-    
+
     // We want to show the flight date including the time.
     // This is important because if we force the display to be UTC,
     // the time is shown as well. The toDateString method gives a date
@@ -74,10 +78,10 @@ function parseIGC(igcFile) {
     // day to be incorrect if the system clock is set to a negative offset
     // from UTC (issue #3).
     if (model.recordTime.length > 0) {
-        model.headers["Date"] = model.recordTime[0].toUTCString();
+        model.headers.Date = model.recordTime[0].toUTCString();
     }
     else {
-        model.headers["Date"] = flightDate.toUTCString();
+        model.headers.Date = flightDate.toUTCString();
     }
 
     // If the file contains a declared task, then it may start or end with
@@ -207,8 +211,8 @@ function parseIGC(igcFile) {
             positionTime.setUTCHours(parseInt(positionMatch[1]), parseInt(positionMatch[2]), parseInt(positionMatch[3]));
             // If the flight crosses midnight (UTC) then we now have a time that is 24 hours out.
             // We know that this is the case if the time is earlier than the one for the previous position fix.
-            if (model.recordTime.length > 0
-                && model.recordTime[model.recordTime.length - 1] > positionTime) {
+            if (model.recordTime.length > 0 &&
+                model.recordTime[model.recordTime.length - 1] > positionTime) {
                 positionTime.setDate(flightDate.getDate() + 1);
             }
 
@@ -225,14 +229,14 @@ function parseIGC(igcFile) {
     // DDMMmmmNDDDMMmmmE
     // where M = minutes and m = decimal places of minutes.
     function parseLatLong(latLongString) {
-        var latitude = parseFloat(latLongString.substring(0, 2))
-            + parseFloat(latLongString.substring(2, 7)) / 60000.0;
+        var latitude = parseFloat(latLongString.substring(0, 2)) +
+            parseFloat(latLongString.substring(2, 7)) / 60000.0;
         if (latLongString.charAt(7) === 'S') {
             latitude = -latitude;
         }
 
-        var longitude = parseFloat(latLongString.substring(8, 11))
-            + parseFloat(latLongString.substring(11, 16)) / 60000.0;
+        var longitude = parseFloat(latLongString.substring(8, 11)) +
+            parseFloat(latLongString.substring(11, 16)) / 60000.0;
         if (latLongString.charAt(16) === 'W') {
             longitude = -longitude;
         }
@@ -244,27 +248,27 @@ function parseIGC(igcFile) {
         var taskRegex = /^C([\d]{7}[NS][\d]{8}[EW])(.*)/;
         var taskMatch = taskRecord.match(taskRegex);
         var degreeSymbol = '\u00B0';
-        
+
         if (taskMatch) {
             var name = taskMatch[2];
 
             // If the turnpoint name is blank, use the latitude and longitude.
             if (name.trim().length === 0) {
-                name = taskRecord.substring(1, 3)
-                + degreeSymbol
-                + taskRecord.substring(3, 5)
-                + '.'
-                + taskRecord.substring(5, 8)
-                + "' "
-                + taskRecord.charAt(8)
-                + ', '
-                + taskRecord.substring(9, 12)
-                + degreeSymbol
-                + taskRecord.substring(12, 14)
-                + '.'
-                + taskRecord.substring(14, 17)
-                + "' "
-                + taskRecord.charAt(17);
+                name = taskRecord.substring(1, 3) +
+                degreeSymbol +
+                taskRecord.substring(3, 5) +
+                '.' +
+                taskRecord.substring(5, 8) +
+                "' " +
+                taskRecord.charAt(8) +
+                ', ' +
+                taskRecord.substring(9, 12) +
+                degreeSymbol +
+                taskRecord.substring(12, 14) +
+                '.' +
+                taskRecord.substring(14, 17) +
+                "' " +
+                taskRecord.charAt(17);
             }
 
             return {
