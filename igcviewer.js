@@ -9,7 +9,22 @@
         $('#fileControl').change(function () {
             if (this.files.length > 0) {
                 var reader = new FileReader();
-                reader.onload = loadIgc;
+                reader.onload = function(e)  {
+                  try {
+                      $('#errorMessage').text('');
+                      mapControl.reset();
+
+                      igcFile = parseIGC(this.result);
+                      displayIgc();
+                  } catch (ex) {
+                      if (ex instanceof IGCException) {
+                          $('#errorMessage').text(ex.message);
+                      }
+                      else {
+                          throw ex;
+                      }
+                  }
+                };
                 reader.readAsText(this.files[0]);
             }
         });
@@ -20,23 +35,6 @@
             }
         });
     });
-
-    function loadIgc(e) {
-        try {
-            $('#errorMessage').text('');
-            mapControl.reset();
-
-            igcFile = parseIGC(this.result);
-            displayIgc();
-        } catch (ex) {
-            if (ex instanceof IGCException) {
-                $('#errorMessage').text(ex.message);
-            }
-            else {
-                throw e;
-            }
-        }
-    }
 
     function displayIgc() {
         // Display the headers.
