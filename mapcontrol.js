@@ -1,19 +1,21 @@
 // Wrapper for the leaflet.js map control with methods
 // to manage the map layers.
-var mapControl = (function ($) {
-    var map;
+function createMapControl(elementName) {
+    'use strict';
+    
+    var map = L.map(elementName);
 
     var mapQuestAttribution = ' | Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">';
     var mapLayers = {
         openStreetMap: L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpg', {
-            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
-                         + mapQuestAttribution,
+            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>' +
+                         mapQuestAttribution,
             maxZoom: 18
         }),
 
         photo: L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.jpg', {
-            attribution: 'Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency'
-                         + mapQuestAttribution,
+            attribution: 'Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency' +
+                         mapQuestAttribution,
             maxZoom: 11
         })
     };
@@ -23,15 +25,10 @@ var mapControl = (function ($) {
         'MapQuest Open Aerial (Photo)': mapLayers.photo
     });
 
-    return {
-        initialise: function (elementName) {
-            map = L.map(elementName);
-            mapLayers.openStreetMap.addTo(map);
+    mapLayers.openStreetMap.addTo(map);
             layersControl.addTo(map);
-
-            L.control.scale().addTo(map);
-        },
-
+    
+    return {
         reset: function () {
             // Clear any existing track data so that a new file can be loaded.
             if (mapLayers.track) {
@@ -67,4 +64,4 @@ var mapControl = (function ($) {
             layersControl.addOverlay(mapLayers.task, 'Task');
         }
     };
-}(jQuery));
+}

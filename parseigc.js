@@ -1,104 +1,15 @@
+// Constructor for an exception which is thrown if the file
+// being parsed is not in a valid IGC format.
 function IGCException(message) {
+    'use strict';
+
     this.message = message;
     this.name = "IGCException";
 }
 
+// Parses an IGC logger file.
 function parseIGC(igcFile) {
-    var invalidFileMessage = 'This does not appear to be an IGC file.';
-    var igcLines = igcFile.split('\n');
-    if (igcLines.length < 2) {
-        throw new IGCException(invalidFileMessage);
-    };
-
-    // Declare the model object that is to be returned;
-    // this contains the position and altitude data and the header
-    // values.
-    var model = {
-        headers: {},
-        recordTime: [],
-        latLong: [],
-        pressureAltitude: [],
-        gpsAltitude: [],
-        task: {
-            coordinates: [],
-            names: []
-        }
-    };
-
-    // The first line should begin with 'A' followed by
-    // a 3-character manufacturer Id and a 3-character serial number.
-    if (!/^A[\w]{6}/.test(igcLines[0])) {
-        throw new IGCException(invalidFileMessage);
-    }
-    parseManufacturer(igcLines[0]);
-
-    var flightDate = extractDate(igcFile);
-    
-    var lineIndex;
-    var positionData;
-    var recordType;
-    var currentLine;
-    var turnpoint; // for task declaration lines
-    for (lineIndex = 0; lineIndex < igcLines.length; lineIndex++) {
-        currentLine = igcLines[lineIndex]
-        recordType = currentLine.charAt(0);
-        switch (recordType) {
-            case 'B': // Position fix
-                positionData = parsePosition(currentLine);
-                if (positionData) {
-                    model.recordTime.push(positionData.recordTime);
-                    model.latLong.push(positionData.latLong);
-                    model.pressureAltitude.push(positionData.pressureAltitude);
-                    model.gpsAltitude.push(positionData.gpsAltitude);
-                }
-                break;
-
-            case 'C': // Task declaration
-                turnpoint = parseTask(currentLine);
-                if (turnpoint) {
-                    model.task.coordinates.push(turnpoint.latLong);
-                    model.task.names.push(turnpoint.name);
-                }
-                break;
-
-            case 'H': // Header information
-                parseHeader(currentLine);
-                break;
-        }
-    }
-    
-    // We want to show the flight date including the time.
-    // This is important because if we force the display to be UTC,
-    // the time is shown as well. The toDateString method gives a date
-    // without a time, but converts implicitly to local, causing the
-    // day to be incorrect if the system clock is set to a negative offset
-    // from UTC (issue #3).
-    if (model.recordTime.length > 0) {
-        model.headers["Date"] = model.recordTime[0].toUTCString();
-    }
-    else {
-        model.headers["Date"] = flightDate.toUTCString();
-    }
-
-    // If the file contains a declared task, then it may start or end with
-    // 'turnpoints' at 0 degrees N, 0 degrees E. These represent the takeoff
-    // and landing positions, which could not have been known at the time when
-    // the declaration was made. Replace them with the actual values so that
-    // the task can be plotted correctly on a map.
-
-    if (model.task.coordinates.length > 0) {
-        if (model.task.coordinates[0][0] === 0.0 && model.task.coordinates[0][1] === 0.0) {
-            model.task.coordinates[0] = model.latLong[0];
-            model.task.names[0] = 'Takeoff';
-        }
-        var lastTask = model.task.coordinates.length - 1;
-        if (model.task.coordinates[lastTask][0] === 0.0 && model.task.coordinates[lastTask][1] === 0.0) {
-            model.task.coordinates[lastTask] = model.latLong[model.latLong.length - 1];
-            model.task.names[lastTask] = 'Landing';
-        }
-    }
-
-    return model;
+    'use strict';
 
     // Looks up the manufacturer name corresponding to
     // the three letter code in the first line of the IGC file
@@ -127,15 +38,17 @@ function parseIGC(igcFile) {
             'ZAN': 'Zander'
         };
 
+        var manufacturerInfo = {
+            manufacturer: 'Unknown',
+            serial: aRecord.substring(4)
+        };
+        
         var manufacturerCode = aRecord.substring(1, 4);
         if (manufacturers[manufacturerCode]) {
-            model.headers['Logger manufacturer'] = manufacturers[manufacturerCode];
+            manufacturerInfo.manufacturer = manufacturers[manufacturerCode];
         }
-        else {
-            model.headers['Logger manufacturer'] = 'Unknown';
-        }
-
-        model.headers['Logger serial number'] = aRecord.substring(4);
+        
+        return manufacturerInfo;
     }
 
     // Extracts the flight date from the IGC file.
@@ -146,12 +59,12 @@ function parseIGC(igcFile) {
             throw new IGCException('The file does not contain a date header.');
         }
 
-        var day = parseInt(dateRecord[1]);
+        var day = parseInt(dateRecord[1], 10);
         // Javascript numbers months from zero, not 1!
-        var month = parseInt(dateRecord[2]) - 1;
+        var month = parseInt(dateRecord[2], 10) - 1;
         // The IGC specification has a built-in Millennium Bug (2-digit year).
         // I will arbitrarily assume that any year before "80" is in the 21st century.
-        var year = parseInt(dateRecord[3]);
+        var year = parseInt(dateRecord[3], 10);
 
         if (year < 80) {
             year += 2000;
@@ -183,14 +96,36 @@ function parseIGC(igcFile) {
             var colonIndex = headerRecord.indexOf(':');
             if (colonIndex !== -1) {
                 var headerValue = headerRecord.substring(colonIndex + 1);
-                if (headerValue.length > 0 && /[^\s]+/.test(headerValue)) {
-                    model.headers[headerName] = headerValue;
+                if (headerValue.length > 0 && /([^\s]+)/.test(headerValue)) {
+                    return {
+                        name: headerName,
+                        value: headerValue
+                    };
                 }
             }
         }
     }
 
-    function parsePosition(positionRecord) {
+    // Parses a latitude and longitude in the form:
+    // DDMMmmmNDDDMMmmmE
+    // where M = minutes and m = decimal places of minutes.
+    function parseLatLong(latLongString) {
+        var latitude = parseFloat(latLongString.substring(0, 2)) +
+            parseFloat(latLongString.substring(2, 7)) / 60000.0;
+        if (latLongString.charAt(7) === 'S') {
+            latitude = -latitude;
+        }
+
+        var longitude = parseFloat(latLongString.substring(8, 11)) +
+            parseFloat(latLongString.substring(11, 16)) / 60000.0;
+        if (latLongString.charAt(16) === 'W') {
+            longitude = -longitude;
+        }
+
+        return [latitude, longitude];
+    }
+    
+    function parsePosition(positionRecord,  model, flightDate) {
         // Regex to match position records:
         // Hours, minutes, seconds, latitude, N or S, longitude, E or W,
         // Fix validity ('A' = 3D fix, 'V' = 2D or no fix),
@@ -204,67 +139,48 @@ function parseIGC(igcFile) {
             // Convert the time to a date and time. Start by making a clone of the date
             // object that represents the date given in the headers:
             var positionTime = new Date(flightDate.getTime());
-            positionTime.setUTCHours(parseInt(positionMatch[1]), parseInt(positionMatch[2]), parseInt(positionMatch[3]));
+            positionTime.setUTCHours(parseInt(positionMatch[1], 10), parseInt(positionMatch[2], 10), parseInt(positionMatch[3], 10));
             // If the flight crosses midnight (UTC) then we now have a time that is 24 hours out.
             // We know that this is the case if the time is earlier than the one for the previous position fix.
-            if (model.recordTime.length > 0
-                && model.recordTime[model.recordTime.length - 1] > positionTime) {
+            if (model.recordTime.length > 0 &&
+                model.recordTime[model.recordTime.length - 1] > positionTime) {
                 positionTime.setDate(flightDate.getDate() + 1);
             }
 
             return {
                 recordTime: positionTime,
                 latLong: parseLatLong(positionMatch[4]),
-                pressureAltitude: parseInt(positionMatch[6]),
-                gpsAltitude: parseInt(positionMatch[7])
+                pressureAltitude: parseInt(positionMatch[6], 10),
+                gpsAltitude: parseInt(positionMatch[7], 10)
             };
         }
-    }
-
-    // Parses a latitude and longitude in the form:
-    // DDMMmmmNDDDMMmmmE
-    // where M = minutes and m = decimal places of minutes.
-    function parseLatLong(latLongString) {
-        var latitude = parseFloat(latLongString.substring(0, 2))
-            + parseFloat(latLongString.substring(2, 7)) / 60000.0;
-        if (latLongString.charAt(7) === 'S') {
-            latitude = -latitude;
-        }
-
-        var longitude = parseFloat(latLongString.substring(8, 11))
-            + parseFloat(latLongString.substring(11, 16)) / 60000.0;
-        if (latLongString.charAt(16) === 'W') {
-            longitude = -longitude;
-        }
-
-        return [latitude, longitude];
     }
 
     function parseTask(taskRecord) {
         var taskRegex = /^C([\d]{7}[NS][\d]{8}[EW])(.*)/;
         var taskMatch = taskRecord.match(taskRegex);
         var degreeSymbol = '\u00B0';
-        
+
         if (taskMatch) {
             var name = taskMatch[2];
 
             // If the turnpoint name is blank, use the latitude and longitude.
             if (name.trim().length === 0) {
-                name = taskRecord.substring(1, 3)
-                + degreeSymbol
-                + taskRecord.substring(3, 5)
-                + '.'
-                + taskRecord.substring(5, 8)
-                + "' "
-                + taskRecord.charAt(8)
-                + ', '
-                + taskRecord.substring(9, 12)
-                + degreeSymbol
-                + taskRecord.substring(12, 14)
-                + '.'
-                + taskRecord.substring(14, 17)
-                + "' "
-                + taskRecord.charAt(17);
+                name = taskRecord.substring(1, 3) +
+                degreeSymbol +
+                taskRecord.substring(3, 5) +
+                '.' +
+                taskRecord.substring(5, 8) +
+                "' " +
+                taskRecord.charAt(8) +
+                ', ' +
+                taskRecord.substring(9, 12) +
+                degreeSymbol +
+                taskRecord.substring(12, 14) +
+                '.' +
+                taskRecord.substring(14, 17) +
+                "' " +
+                taskRecord.charAt(17);
             }
 
             return {
@@ -273,4 +189,116 @@ function parseIGC(igcFile) {
             };
         }
     }
+    
+    // ---- Start of IGC parser code ----
+    
+    var invalidFileMessage = 'This does not appear to be an IGC file.';
+    var igcLines = igcFile.split('\n');
+    if (igcLines.length < 2) {
+        throw new IGCException(invalidFileMessage);
+    }
+
+    // Declare the model object that is to be returned;
+    // this contains the position and altitude data and the header
+    // values.
+    var model = {
+        headers: [],
+        recordTime: [],
+        latLong: [],
+        pressureAltitude: [],
+        gpsAltitude: [],
+        task: {
+            coordinates: [],
+            names: []
+        }
+    };
+
+    // The first line should begin with 'A' followed by
+    // a 3-character manufacturer Id and a 3-character serial number.
+    if (!(/^A[\w]{6}/).test(igcLines[0])) {
+        throw new IGCException(invalidFileMessage);
+    }
+    
+    var manufacturerInfo = parseManufacturer(igcLines[0]);
+    model.headers.push({
+        name: 'Logger manufacturer',
+        value: manufacturerInfo.manufacturer 
+    });
+    
+    model.headers.push({
+        name: 'Logger serial number',
+        value: manufacturerInfo.serial
+    });
+
+    var flightDate = extractDate(igcFile);
+
+    var lineIndex;
+    var positionData;
+    var recordType;
+    var currentLine;
+    var turnpoint; // for task declaration lines
+    var headerData;
+    for (lineIndex = 0; lineIndex < igcLines.length; lineIndex++) {
+        currentLine = igcLines[lineIndex];
+        recordType = currentLine.charAt(0);
+        switch (recordType) {
+            case 'B': // Position fix
+                positionData = parsePosition(currentLine, model, flightDate);
+                if (positionData) {
+                    model.recordTime.push(positionData.recordTime);
+                    model.latLong.push(positionData.latLong);
+                    model.pressureAltitude.push(positionData.pressureAltitude);
+                    model.gpsAltitude.push(positionData.gpsAltitude);
+                }
+                break;
+
+            case 'C': // Task declaration
+                turnpoint = parseTask(currentLine);
+                if (turnpoint) {
+                    model.task.coordinates.push(turnpoint.latLong);
+                    model.task.names.push(turnpoint.name);
+                }
+                break;
+
+            case 'H': // Header information
+                headerData = parseHeader(currentLine);
+                if (headerData) {
+                    model.headers.push(headerData);
+                }
+                break;
+        }
+    }
+
+    // We want to show the flight date including the time.
+    // This is important because if we force the display to be UTC,
+    // the time is shown as well. The toDateString method gives a date
+    // without a time, but converts implicitly to local, causing the
+    // day to be incorrect if the system clock is set to a negative offset
+    // from UTC (issue #3).
+    if (model.recordTime.length > 0) {
+        model.headers.Date = model.recordTime[0].toUTCString();
+    }
+    else {
+        model.headers.Date = flightDate.toUTCString();
+    }
+
+    // If the file contains a declared task, then it may start or end with
+    // 'turnpoints' at 0 degrees N, 0 degrees E. These represent the takeoff
+    // and landing positions, which could not have been known at the time when
+    // the declaration was made. Replace them with the actual values so that
+    // the task can be plotted correctly on a map.
+
+    if (model.task.coordinates.length > 0) {
+        if (model.task.coordinates[0][0] === 0.0 && model.task.coordinates[0][1] === 0.0) {
+            model.task.coordinates[0] = model.latLong[0];
+            model.task.names[0] = 'Takeoff';
+        }
+        var lastTask = model.task.coordinates.length - 1;
+        if (model.task.coordinates[lastTask][0] === 0.0 && model.task.coordinates[lastTask][1] === 0.0) {
+            model.task.coordinates[lastTask] = model.latLong[model.latLong.length - 1];
+            model.task.names[lastTask] = 'Landing';
+        }
+    }
+
+    return model;
 }
