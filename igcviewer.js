@@ -45,40 +45,7 @@
         });
     }
     
-    $(document).ready(function () {
-        mapControl.initialise('map');
-
-        $('#fileControl').change(function () {
-            if (this.files.length > 0) {
-                var reader = new FileReader();
-                reader.onload = function(e)  {
-                  try {
-                      $('#errorMessage').text('');
-                      mapControl.reset();
-
-                      igcFile = parseIGC(this.result);
-                      displayIgc();
-                  } catch (ex) {
-                      if (ex instanceof IGCException) {
-                          $('#errorMessage').text(ex.message);
-                      }
-                      else {
-                          throw ex;
-                      }
-                  }
-                };
-                reader.readAsText(this.files[0]);
-            }
-        });
-
-        $('#altitudeUnits').change(function () {
-            if (igcFile !== null) {
-                plotBarogram();
-            }
-        });
-    });
-
-    function displayIgc() {
+    function displayIgc(mapControl) {
         // Display the headers.
         var headerTable = $('#headerInfo tbody');
         headerTable.html('');
@@ -113,6 +80,41 @@
         mapControl.addTrack(igcFile.latLong);
 
         plotBarogram(igcFile);
-    }    
+    }
+    
+    $(document).ready(function () {
+        var mapControl = createMapControl('map');
+
+        $('#fileControl').change(function () {
+            if (this.files.length > 0) {
+                var reader = new FileReader();
+                reader.onload = function(e)  {
+                  try {
+                      $('#errorMessage').text('');
+                      mapControl.reset();
+
+                      igcFile = parseIGC(this.result);
+                      displayIgc(mapControl);
+                  } catch (ex) {
+                      if (ex instanceof IGCException) {
+                          $('#errorMessage').text(ex.message);
+                      }
+                      else {
+                          throw ex;
+                      }
+                  }
+                };
+                reader.readAsText(this.files[0]);
+            }
+        });
+
+        $('#altitudeUnits').change(function () {
+            if (igcFile !== null) {
+                plotBarogram();
+            }
+        });
+    });
+
+        
 
 }(jQuery));

@@ -1,9 +1,9 @@
 // Wrapper for the leaflet.js map control with methods
 // to manage the map layers.
-var mapControl = (function () {
+function createMapControl(elementName) {
     'use strict';
     
-    var map;
+    var map = L.map(elementName);
 
     var mapQuestAttribution = ' | Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">';
     var mapLayers = {
@@ -25,15 +25,10 @@ var mapControl = (function () {
         'MapQuest Open Aerial (Photo)': mapLayers.photo
     });
 
-    return {
-        initialise: function (elementName) {
-            map = L.map(elementName);
-            mapLayers.openStreetMap.addTo(map);
+    mapLayers.openStreetMap.addTo(map);
             layersControl.addTo(map);
-
-            L.control.scale().addTo(map);
-        },
-
+    
+    return {
         reset: function () {
             // Clear any existing track data so that a new file can be loaded.
             if (mapLayers.track) {
@@ -69,4 +64,4 @@ var mapControl = (function () {
             layersControl.addOverlay(mapLayers.task, 'Task');
         }
     };
-}());
+}
