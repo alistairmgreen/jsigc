@@ -40,7 +40,7 @@ function parseIGC(igcFile) {
 
         var manufacturerInfo = {
             manufacturer: 'Unknown',
-            serial: aRecord.substring(4)
+            serial: aRecord.substring(4, 7)
         };
         
         var manufacturerCode = aRecord.substring(1, 4);
