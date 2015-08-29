@@ -275,12 +275,18 @@ function parseIGC(igcFile) {
     // without a time, but converts implicitly to local, causing the
     // day to be incorrect if the system clock is set to a negative offset
     // from UTC (issue #3).
+    var displayDate;
     if (model.recordTime.length > 0) {
-        model.headers.Date = model.recordTime[0].toUTCString();
+        displayDate = model.recordTime[0].toUTCString();
     }
     else {
-        model.headers.Date = flightDate.toUTCString();
+        displayDate = flightDate.toUTCString();
     }
+    
+    model.headers.unshift({
+        name: 'Date',
+        value: displayDate
+    });
 
     // If the file contains a declared task, then it may start or end with
     // 'turnpoints' at 0 degrees N, 0 degrees E. These represent the takeoff
