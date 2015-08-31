@@ -45,6 +45,30 @@
         return baro;
     }
     
+    function updateTimeline (timeIndex, mapControl) {
+        var currentPosition = igcFile.latLong[timeIndex];
+        var startPosition = igcFile.latLong[0];
+        var distance = L.latLng(currentPosition[0], currentPosition[1]).distanceTo(
+            L.latLng(startPosition[0], startPosition[1])) / 1000.0;
+        
+        var unitName = $('#altitudeUnits').val();
+        $('#timePositionDisplay').text(
+            igcFile.recordTime[timeIndex].toUTCString() + ': ' +
+            (igcFile.pressureAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
+            unitName + ' (barometric) / ' +
+            (igcFile.gpsAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
+            unitName + ' (GPS); ' +
+            distance.toFixed(1) + ' km from takeoff'
+        );
+        
+        mapControl.setTimeMarker(timeIndex);
+        
+        barogramPlot.lockCrosshair({
+           x: igcFile.recordTime[timeIndex].getTime(),
+           y: 1.0
+        });
+    }
+    
     function displayIgc(mapControl) {
         // Display the headers.
         var headerTable = $('#headerInfo tbody');
@@ -83,31 +107,6 @@
         $('#timeSlider').prop('max', igcFile.recordTime.length - 1);
         updateTimeline(0, mapControl);
     }
-    
-    function updateTimeline (timeIndex, mapControl) {
-        var currentPosition = igcFile.latLong[timeIndex];
-        var startPosition = igcFile.latLong[0];
-        var distance = L.latLng(currentPosition[0], currentPosition[1]).distanceTo(
-            L.latLng(startPosition[0], startPosition[1])) / 1000.0;
-        
-        var unitName = $('#altitudeUnits').val();
-        $('#timePositionDisplay').text(
-            igcFile.recordTime[timeIndex].toUTCString() + ': ' +
-            (igcFile.pressureAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
-            unitName + ' (barometric) / ' +
-            (igcFile.gpsAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
-            unitName + ' (GPS); ' +
-            distance.toFixed(1) + ' km from takeoff'
-        );
-        
-        mapControl.setTimeMarker(timeIndex);
-        
-        barogramPlot.lockCrosshair({
-           x: igcFile.recordTime[timeIndex].getTime(),
-           y: 1.0
-        });
-    }
-    
     
     $(document).ready(function () {
         var mapControl = createMapControl('map');
