@@ -3,6 +3,7 @@
 
     var igcFile = null;
     var barogramPlot = null;
+    var altitudeConversionFactor = 1.0; // Conversion from metres to required units
     
     function plotBarogram() {
         var nPoints = igcFile.recordTime.length;
@@ -10,14 +11,6 @@
         var gpsBarogramData = [];
         var j;
         var timestamp;
-        var altitudeUnit = $('#altitudeUnits').val();
-        var altitudeConversionFactor;
-        if (altitudeUnit === 'feet') {
-            altitudeConversionFactor = 3.2808399;
-        }
-        else {
-            altitudeConversionFactor = 1.0;
-        }
 
         for (j = 0; j < nPoints; j++) {
             timestamp = igcFile.recordTime[j].getTime();
@@ -41,7 +34,7 @@
                 axisLabel: 'Time (UTC)'
             },
             yaxis: {
-                axisLabel: 'Altitude / ' + altitudeUnit
+                axisLabel: 'Altitude / ' + $('#altitudeUnits').val()
             },
             
             crosshair: {
@@ -92,8 +85,19 @@
     }
     
     function updateTimeline (timeIndex, mapControl) {
+        var currentPosition = igcFile.latLong[timeIndex];
+        var startPosition = igcFile.latLong[0];
+        var distance = L.latLng(currentPosition[0], currentPosition[1]).distanceTo(
+            L.latLng(startPosition[0], startPosition[1])) / 1000.0;
+        
+        var unitName = $('#altitudeUnits').val();
         $('#timePositionDisplay').text(
-            igcFile.recordTime[timeIndex].toUTCString()
+            igcFile.recordTime[timeIndex].toUTCString() + ': ' +
+            (igcFile.pressureAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
+            unitName + ' (barometric) / ' +
+            (igcFile.gpsAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
+            unitName + ' (GPS); ' +
+            distance.toFixed(1) + ' km from takeoff'
         );
         
         mapControl.setTimeMarker(timeIndex);
@@ -133,6 +137,14 @@
         });
 
         $('#altitudeUnits').change(function () {
+            var altitudeUnit = $(this).val();
+            if (altitudeUnit === 'feet') {
+                altitudeConversionFactor = 3.2808399;
+            }
+            else {
+                altitudeConversionFactor = 1.0;
+            }
+        
             if (igcFile !== null) {
                 barogramPlot = plotBarogram();
                 updateTimeline($('#timeSlider').val(), mapControl);
