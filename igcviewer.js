@@ -81,13 +81,15 @@
         plotBarogram(igcFile);
         
         $('#timeSlider').prop('max', igcFile.recordTime.length - 1);
-        updateTimeline(0);
+        updateTimeline(0, mapControl);
     }
     
-    function updateTimeline (timeIndex) {
+    function updateTimeline (timeIndex, mapControl) {
         $('#timePositionDisplay').text(
             igcFile.recordTime[timeIndex].toUTCString()
         );
+        
+        mapControl.setTimeMarker(timeIndex);
     }
     
     
@@ -125,7 +127,7 @@
         });
         
         $('#timeSlider').change(function() {
-           updateTimeline($(this).val());
+           updateTimeline($(this).val(), mapControl);
         });
     });
 }(jQuery));
