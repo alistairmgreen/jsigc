@@ -75,7 +75,14 @@ function createMapControl(elementName) {
         },
         
         setTimeMarker: function (timeIndex) {
-            timePositionMarker.setLatLng(trackLatLong[timeIndex]);
+            var markerLatLng = trackLatLong[timeIndex];
+            if (markerLatLng) {
+                timePositionMarker.setLatLng(markerLatLng);
+                
+                if (!map.getBounds().contains(markerLatLng)) {
+                    map.panTo(markerLatLng);
+                }
+            }
         }
     };
 }
