@@ -76,11 +76,20 @@
         // Reveal the map and graph. We have to do this before
         // setting the zoom level of the map or plotting the graph.
         $('#igcFileDisplay').show();
-
+        
         mapControl.addTrack(igcFile.latLong);
-
         plotBarogram(igcFile);
+        
+        $('#timeSlider').prop('max', igcFile.recordTime.length - 1);
+        updateTimeline(0);
     }
+    
+    function updateTimeline (timeIndex) {
+        $('#timePositionDisplay').text(
+            igcFile.recordTime[timeIndex].toUTCString()
+        );
+    }
+    
     
     $(document).ready(function () {
         var mapControl = createMapControl('map');
@@ -92,6 +101,7 @@
                   try {
                       $('#errorMessage').text('');
                       mapControl.reset();
+                      $('#timeSlider').val(0);
 
                       igcFile = parseIGC(this.result);
                       displayIgc(mapControl);
@@ -112,6 +122,10 @@
             if (igcFile !== null) {
                 plotBarogram();
             }
+        });
+        
+        $('#timeSlider').change(function() {
+           updateTimeline($(this).val());
         });
     });
 }(jQuery));

@@ -54,3 +54,7 @@ table#headerInfo {
     text-align: left;
     font-weight: bold;
 }
+
+#slider input[type='range'] {
+    width: 90vw;
+}
