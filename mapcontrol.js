@@ -30,6 +30,12 @@ function createMapControl(elementName) {
     
     var trackLatLong = [];
     var timePositionMarker;
+    L.AwesomeMarkers.Icon.prototype.options.prefix = 'fa';
+    var planeIcon = L.AwesomeMarkers.icon({
+        icon: 'plane',
+        iconColor: 'white',
+        markerColor: 'red'
+    });
     
     return {
         reset: function () {
@@ -48,7 +54,7 @@ function createMapControl(elementName) {
         addTrack: function (latLong) {
             trackLatLong = latLong;
             var trackLine = L.polyline(latLong, { color: 'red' });
-            timePositionMarker = L.marker(latLong[0]);
+            timePositionMarker = L.marker(latLong[0], { icon: planeIcon });
             mapLayers.track = L.layerGroup([
                 trackLine,
                 timePositionMarker
