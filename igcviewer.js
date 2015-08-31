@@ -39,6 +39,11 @@
             
             crosshair: {
                 mode: 'xy'
+            },
+            
+            grid: {
+                clickable: true,
+                autoHighlight: false
             }
         });
         
@@ -159,5 +164,13 @@
         $('#timeSlider').on('change', function() {
            updateTimeline($(this).val(), mapControl);
         });
+        
+         $('#barogram').on('plotclick', function (event, pos, item) {
+             console.log('plot click');
+             if (item) {
+                 updateTimeline(item.dataIndex, mapControl);
+                 $('#timeSlider').val(item.dataIndex);
+             }
+         });
     });
 }(jQuery));
