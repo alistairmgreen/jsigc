@@ -2,7 +2,8 @@
    'use strict';
 
     var igcFile = null;
-
+    var barogramPlot = null;
+    
     function plotBarogram() {
         var nPoints = igcFile.recordTime.length;
         var pressureBarogramData = [];
@@ -24,7 +25,7 @@
             gpsBarogramData.push([timestamp, igcFile.gpsAltitude[j] * altitudeConversionFactor]);
         }
 
-        $('#barogram').plot([{
+        var baro = $.plot($('#barogram'), [{
             label: 'Pressure altitude',
             data: pressureBarogramData
         }, {
@@ -41,8 +42,14 @@
             },
             yaxis: {
                 axisLabel: 'Altitude / ' + altitudeUnit
+            },
+            
+            crosshair: {
+                mode: 'x'
             }
         });
+        
+        return baro;
     }
     
     function displayIgc(mapControl) {
@@ -78,7 +85,7 @@
         $('#igcFileDisplay').show();
         
         mapControl.addTrack(igcFile.latLong);
-        plotBarogram(igcFile);
+        barogramPlot = plotBarogram(igcFile);
         
         $('#timeSlider').prop('max', igcFile.recordTime.length - 1);
         updateTimeline(0, mapControl);
@@ -90,6 +97,11 @@
         );
         
         mapControl.setTimeMarker(timeIndex);
+        
+        barogramPlot.lockCrosshair({
+           x: igcFile.recordTime[timeIndex].getTime(),
+           y: 1.0
+        });
     }
     
     
@@ -122,7 +134,7 @@
 
         $('#altitudeUnits').change(function () {
             if (igcFile !== null) {
-                plotBarogram();
+                barogramPlot = plotBarogram();
             }
         });
         
