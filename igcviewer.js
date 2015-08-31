@@ -38,7 +38,7 @@
             },
             
             crosshair: {
-                mode: 'x'
+                mode: 'xy'
             }
         });
         
@@ -65,7 +65,7 @@
         
         barogramPlot.lockCrosshair({
            x: igcFile.recordTime[timeIndex].getTime(),
-           y: 1.0
+           y: igcFile.pressureAltitude[timeIndex] * altitudeConversionFactor
         });
     }
     
