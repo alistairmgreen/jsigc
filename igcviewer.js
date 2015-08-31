@@ -139,7 +139,13 @@
             }
         });
         
-        $('#timeSlider').change(function() {
+        // We need to handle the 'change' event for IE, but
+        // 'input' for Chrome and Firefox in order to update smoothly
+        // as the range input is dragged.
+        $('#timeSlider').on('input', function() {
+           updateTimeline($(this).val(), mapControl);
+        });
+        $('#timeSlider').on('change', function() {
            updateTimeline($(this).val(), mapControl);
         });
     });
