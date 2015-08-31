@@ -135,6 +135,7 @@
         $('#altitudeUnits').change(function () {
             if (igcFile !== null) {
                 barogramPlot = plotBarogram();
+                updateTimeline($('#timeSlider').val(), mapControl);
             }
         });
         
