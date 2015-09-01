@@ -59,12 +59,34 @@
         }
 
         // Show the task declaration if it is present.
-        if (igcFile.task.coordinates.length > 0) {
+        //First two coordinates are always takeoff and start. Last two always finish and landing
+        //So there must be at least 5 for a vailid declaration
+        if (igcFile.task.coordinates.length > 4) {
             $('#task').show();
-            var taskList = $('#task ol').first().html('');
+            var taskList = $('#task ul').first().html('');
             var j;
+            //Now add TP numbers.  Change to unordered list
             for (j = 0; j < igcFile.task.names.length; j++) {
-                taskList.append($('<li></li>').text(igcFile.task.names[j]));
+                switch(j)  {
+                    case 0:
+                          if (igcFile.task.coordinates[0][0] != 0.0 && igcFile.task.coordinates[0][1] != 0.0) {
+                             taskList.append($('<li> </li>').text("Takeoff: " + igcFile.task.names[j]));
+                          }
+                        break;
+                    case 1:
+                        taskList.append($('<li> </li>').text("Start: " + igcFile.task.names[j]));
+                        break;
+                    case ( igcFile.task.names.length-2):
+                         taskList.append($('<li> </li>').text("Finish: " + igcFile.task.names[j]));
+                         break;
+                    case ( igcFile.task.names.length-1):
+                         if (igcFile.task.coordinates[j][0] != 0.0 && igcFile.task.coordinates[j][1] != 0.0) {
+                                taskList.append($('<li> </li>').text("Landing: : " + igcFile.task.names[j]));
+                         }
+                         break;
+                    default:
+                taskList.append($('<li></li>').text("TP" + (j-1).toString() + ": " + igcFile.task.names[j]));
+                }
             }
 
             mapControl.addTask(igcFile.task.coordinates, igcFile.task.names);

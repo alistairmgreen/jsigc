@@ -55,6 +55,12 @@ function createMapControl(elementName) {
         },
 
         addTask: function (coordinates, names) {
+            //Clearer if we don't show track to and from start line and finish line, as we are going to show lines
+            //So throw away first and last points
+            coordinates.shift();
+            names.shift();
+            coordinates.pop();
+            names.pop();
             var taskLayers = [L.polyline(coordinates, { color: 'blue' })];
             var j;
             for (j = 0; j < coordinates.length; j++) {
