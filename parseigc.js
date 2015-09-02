@@ -209,7 +209,9 @@ function parseIGC(igcFile) {
         gpsAltitude: [],
         task: {
             coordinates: [],
-            names: []
+            names: [],
+            takeoff: "",
+            landing: ""
         }
     };
 
@@ -287,24 +289,28 @@ function parseIGC(igcFile) {
         name: 'Date',
         value: displayDate
     });
-    //This bit is no longer needed as we won't be plotting these lines anyway.
-    // If the file contains a declared task, then it may start or end with
-    // 'turnpoints' at 0 degrees N, 0 degrees E. These represent the takeoff
-    // and landing positions, which could not have been known at the time when
-    // the declaration was made. Replace them with the actual values so that
-    // the task can be plotted correctly on a map.
 
-   // if (model.task.coordinates.length > 0) {
-       // if (model.task.coordinates[0][0] === 0.0 && model.task.coordinates[0][1] === 0.0) {
-            //model.task.coordinates[0] = model.latLong[0];
-          //  model.task.names[0] = 'Takeoff';
-        //}
-     //   var lastTask = model.task.coordinates.length - 1;
-       // if (model.task.coordinates[lastTask][0] === 0.0 && model.task.coordinates[lastTask][1] === 0.0) {
-            //model.task.coordinates[lastTask] = model.latLong[model.latLong.length - 1];
-           // model.task.names[lastTask] = 'Landing';
-        //}
-   // }
+// Extract takeoff and landing  names from model.task and reduce model.task.coordinates to what we want to plot
+// Throw away takeoff and landing coordinates as we won't be using them
+if(model.task.names.length > 0)  {
+    var takeoffname=model.task.takeoff=model.task.names.shift();
+   if  (model.task.coordinates[0][0]!==0)  {
+       model.task.takeoff=takeoffname;
+   }
+else {
+            model.task.takeoff="";
+   }
+  
+model.task.coordinates.shift();
+    var landingname=model.task.names.pop();
+    if  (model.task.coordinates[model.task.coordinates.length-1][0]!==0)  {
+       model.task.landing=landingname;
+   }
+   else     {
+            model.task.landing="";
+     }
+    model.task.coordinates.pop();
+    }
 
     return model;
 }
