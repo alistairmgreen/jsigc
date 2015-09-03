@@ -59,15 +59,34 @@
         }
 
         // Show the task declaration if it is present.
+        
         if (igcFile.task.coordinates.length > 0) {
-            $('#task').show();
-            var taskList = $('#task ol').first().html('');
-            var j;
-            for (j = 0; j < igcFile.task.names.length; j++) {
-                taskList.append($('<li></li>').text(igcFile.task.names[j]));
-            }
-
-            mapControl.addTask(igcFile.task.coordinates, igcFile.task.names);
+            //eliminate anything with empty start line coordinates
+            if(igcFile.task.coordinates[0][0] !==0) {
+                    $('#task').show();
+                    var taskList = $('#task ul').first().html('');
+                    var j;
+                    //Now add TP numbers.  Change to unordered list
+                    if(igcFile.task.takeoff.length > 0) {
+                               taskList.append($('<li> </li>').text("Takeoff: " + igcFile.task.takeoff));
+                    }
+                    for (j =0; j <igcFile.task.names.length; j++) {
+                            switch(j)  {
+                            case 0:
+                                    taskList.append($('<li> </li>').text("Start: " + igcFile.task.names[j]));
+                                    break;
+                            case ( igcFile.task.names.length-1):
+                                    taskList.append($('<li> </li>').text("Finish: " + igcFile.task.names[j]));
+                                    break;
+                            default:
+                                    taskList.append($('<li></li>').text("TP" + (j).toString() + ": " + igcFile.task.names[j]));
+                        }
+                    }
+                 if(igcFile.task.landing.length > 0) {
+                        taskList.append($('<li> </li>').text("Landing: : " + igcFile.task.landing)); 
+                 }
+                mapControl.addTask(igcFile.task.coordinates, igcFile.task.names);
+                }
         }
         else {
             $('#task').hide();
