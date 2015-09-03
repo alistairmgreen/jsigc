@@ -138,13 +138,22 @@ getTpSector: function(centrept,pt1,pt2,sectorRadius,sectorAngle,drawOptions)  {
 
 
 function getBearing(pt1,pt2)    {
-    //get bearing from pt1 to pt2 in degrees
-    //need radians for cosine function
-      //Use Pythogoras
-      var northmean=(pt1[0] + pt2[0]) *Math.PI / 360;
-     var longdiff=(pt2[1] - pt1[1])  * Math.cos( northmean);
-     var latdiff= pt2[0]-pt1[0];
-     return (Math.atan2(longdiff,latdiff) *180/Math.PI +360) % 360;
+    // Get bearing from pt1 to pt2 in degrees
+    // Formula from: http://www.movable-type.co.uk/scripts/latlong.html
+    // Start by converting to radians.
+    var degToRad = Math.PI / 180.0;
+    var lat1 = pt1[0] * degToRad;
+    var lon1 = pt1[1] * degToRad;
+    var lat2 = pt2[0] * degToRad;
+    var lon2 = pt2[1] * degToRad;
+    
+    var y = Math.sin(lon2 - lon1) * Math.cos(lat2);
+    var x = Math.cos(lat1) * Math.sin(lat2) -
+        Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
+
+    var bearing = Math.atan2(y, x) / degToRad;
+    bearing = (bearing + 360.0) % 360.0;
+    return bearing;
 }
 
 
