@@ -57,7 +57,6 @@ function createMapControl(elementName) {
         addTask: function (coordinates, names) {
             //Clearer if we don't show track to and from start line and finish line, as we are going to show lines
             var taskLayers = [L.polyline(coordinates, { color: 'blue' })];
-
              var taskDrawOptions = {
                color: 'green',
                weight: 3,
@@ -75,27 +74,24 @@ function createMapControl(elementName) {
                 taskLayers.push(L.marker(coordinates[j]).bindPopup(names[j]));
                  switch(j)   {
                     case 0:
-                         var startline=getline(coordinates[0],coordinates[1],startLineRadius,taskDrawOptions);
+                         var startline=this.getline(coordinates[0],coordinates[1],startLineRadius,taskDrawOptions);
                         taskLayers.push(startline);
                         break;
                     case (coordinates.length-1):
-                       var finishline= getline(coordinates[j], coordinates[j-1], finishLineRadius,taskDrawOptions);
+                       var finishline= this.getline(coordinates[j], coordinates[j-1], finishLineRadius,taskDrawOptions);
                         taskLayers.push(finishline);
                         break;
                     default:
                         taskLayers.push(L.circle(coordinates[j], tpCircleRadius, taskDrawOptions));
-                         var tpsector=getTpSector(coordinates[j], coordinates[j-1],coordinates[j+1],tpSectorRadius,tpSectorAngle,taskDrawOptions);
+                         var tpsector=this.getTpSector(coordinates[j], coordinates[j-1],coordinates[j+1],tpSectorRadius,tpSectorAngle,taskDrawOptions);
                         taskLayers.push(tpsector);
                 }
             }
             mapLayers.task = L.layerGroup(taskLayers).addTo(map);
             layersControl.addOverlay(mapLayers.task, 'Task');
-        }
-    };
-}    
-
-
-function getline(pt1,pt2,linerad,drawOptions) {
+        },
+        
+    getline: function(pt1,pt2,linerad,drawOptions) {
       //returns line through pt1, at right angles to line between pt1 and pt2, length linerad.
      //Use Pythogoras- accurate enough on this scale
       var latdiff=pt2[0] - pt1[0];
@@ -117,7 +113,29 @@ function getline(pt1,pt2,linerad,drawOptions) {
              };
 
      return new  L.Polyline(polylinePoints,drawOptions);
-}
+},
+
+getTpSector: function(centrept,pt1,pt2,sectorRadius,sectorAngle,drawOptions)  {
+    var headingIn= getBearing(pt1,centrept);
+    var bearingOut= getBearing(pt2,centrept);
+    var bisector= headingIn + (bearingOut-headingIn)/2;
+    if(Math.abs(bearingOut-headingIn) > 180)  {
+        bisector = (bisector + 180) % 360;
+    }
+   var beginangle= bisector -sectorAngle/2;
+    if (beginangle < 0) {
+       beginangle += 360;
+    }
+   var endangle=(bisector + sectorAngle/2) % 360;
+   var sectorOptions= jQuery.extend({},drawOptions,{startAngle:beginangle,stopAngle:endangle});
+   return L.circle(centrept,sectorRadius,sectorOptions);
+
+}  
+
+    };
+}    
+
+
 
 function getBearing(pt1,pt2)    {
     //get bearing from pt1 to pt2 in degrees
@@ -129,23 +147,6 @@ function getBearing(pt1,pt2)    {
      return (Math.atan2(longdiff,latdiff) *180/Math.PI +360) % 360;
 }
 
-function getTpSector(centrept,pt1,pt2,sectorRadius,sectorAngle,drawOptions)  {
-    var headingIn= getBearing(pt1,centrept);
-    var bearingOut= getBearing(pt2,centrept);
 
-    var bisector= headingIn + (bearingOut-headingIn)/2;;
-   var beginangle= bisector -sectorAngle/2;
-    if (beginangle < 0) {
-       beginangle += 360;
-    }
-   var endangle=(bisector + sectorAngle/2) % 360;
-    var lineOptions = {
-               color: 'green',
-               weight: 3,
-               opacity: 0.8
-             };
-    sectorOptions= jQuery.extend({},drawOptions,{startAngle:beginangle,stopAngle:endangle});
-    return  L.circle(centrept,sectorRadius,sectorOptions);
-}    
 
 
