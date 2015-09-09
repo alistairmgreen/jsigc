@@ -11,6 +11,10 @@ body {
     margin-right: auto;
 }
 
+#barogram {
+   cursor: crosshair;
+}
+
 @media print, screen and (max-width: 1100px) {
     #map, #barogram {
         width: 90%;
@@ -32,7 +36,6 @@ body {
     #barogram {
         position: absolute;
         right: 0px;
-        cursor: crosshair;
     }
 }
 
