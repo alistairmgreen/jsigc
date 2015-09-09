@@ -95,6 +95,15 @@ function createMapControl(elementName) {
     mapLayers.openStreetMap.addTo(map);
     layersControl.addTo(map);
 
+    var trackLatLong = [];
+    var timePositionMarker;
+    L.AwesomeMarkers.Icon.prototype.options.prefix = 'fa';
+    var planeIcon = L.AwesomeMarkers.icon({
+        icon: 'plane',
+        iconColor: 'white',
+        markerColor: 'red'
+    });
+    
     return {
         reset: function () {
             // Clear any existing track data so that a new file can be loaded.
@@ -110,11 +119,12 @@ function createMapControl(elementName) {
         },
 
         addTrack: function (latLong) {
+            trackLatLong = latLong;
             var trackLine = L.polyline(latLong, { color: 'red' });
+            timePositionMarker = L.marker(latLong[0], { icon: planeIcon });
             mapLayers.track = L.layerGroup([
                 trackLine,
-                L.marker(latLong[0]).bindPopup('Takeoff'),
-                L.marker(latLong[latLong.length - 1]).bindPopup('Landing')
+                timePositionMarker
             ]).addTo(map);
             layersControl.addOverlay(mapLayers.track, 'Flight path');
 
@@ -156,6 +166,17 @@ function createMapControl(elementName) {
             }
             mapLayers.task = L.layerGroup(taskLayers).addTo(map);
             layersControl.addOverlay(mapLayers.task, 'Task');
+        },
+        
+        setTimeMarker: function (timeIndex) {
+            var markerLatLng = trackLatLong[timeIndex];
+            if (markerLatLng) {
+                timePositionMarker.setLatLng(markerLatLng);
+                
+                if (!map.getBounds().contains(markerLatLng)) {
+                    map.panTo(markerLatLng);
+                }
+            }
         }
     };
 }

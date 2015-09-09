@@ -2,8 +2,26 @@ body {
     font-family: sans-serif;
 }
 
-#map, #barogram {
-    height: 90vh;
+#map {
+    width: 100%;
+    height: calc(100% - 115px);
+    margin-bottom: 15px;
+}
+
+#slider {
+    height: 100px;
+}
+
+#slider label {
+    width: 6em;
+}
+
+#slider input[type='range'] {
+    width: calc(100% - 6em);
+    padding-bottom: 0px; /* Default padding is huge in Internet Explorer.*/
+}
+
+#mapWrapper, #barogram {
     max-height: 110vw;
     margin-top: 30px;
     margin-bottom: 30px;
@@ -11,27 +29,40 @@ body {
     margin-right: auto;
 }
 
+#mapWrapper {
+   height: 90vh;
+}
+
+#barogram {
+   cursor: crosshair;
+}
+
 @media print, screen and (max-width: 1100px) {
-    #map, #barogram {
+    #mapWrapper, #barogram {
         width: 90%;
         display: block;
         position: relative;
     }
+    
+    #barogram {
+        height: calc(90vh - 130px);
+    }
 }
 
 @media screen and (min-width: 1100px) {
-    #map, #barogram {
+    #mapWrapper, #barogram {
         display: inline-block;
         width: calc(50% - 30px);
     }
 
-    #map {
+    #mapWrapper {
         margin-left: 30px;
     }
 
     #barogram {
         position: absolute;
         right: 0px;
+        height: 90vh;
     }
 }
 
