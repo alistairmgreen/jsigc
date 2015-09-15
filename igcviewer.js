@@ -52,18 +52,16 @@
     
     function updateTimeline (timeIndex, mapControl) {
         var currentPosition = igcFile.latLong[timeIndex];
-        var startPosition = igcFile.latLong[0];
-        var distance = L.latLng(currentPosition[0], currentPosition[1]).distanceTo(
-            L.latLng(startPosition[0], startPosition[1])) / 1000.0;
-        
+        var positionText=positionDisplay(currentPosition);
         var unitName = $('#altitudeUnits').val();
         $('#timePositionDisplay').text(
-            igcFile.recordTime[timeIndex].toUTCString() + ': ' +
+           // igcFile.recordTime[timeIndex].toUTCString() + ': ' +
+             igcFile.recordTime[timeIndex].getHours() + ':' +pad( igcFile.recordTime[timeIndex].getMinutes()) + ':' + pad(igcFile.recordTime[timeIndex].getSeconds()) + ' UTC; ' + 
             (igcFile.pressureAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
             unitName + ' (barometric) / ' +
             (igcFile.gpsAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
             unitName + ' (GPS); ' +
-            distance.toFixed(1) + ' km from takeoff'
+            positionText
         );
         
         mapControl.setTimeMarker(timeIndex);
@@ -132,6 +130,37 @@
         updateTimeline(0, mapControl);
     }
     
+    function toDegMins(degreevalue) {
+        var wholedegrees= Math.floor(degreevalue);
+        var minutevalue = (60*(degreevalue-wholedegrees)).toFixed(3);
+        return wholedegrees +"\xB0 "  + minutevalue  + "\xB4";
+    }
+    
+    function positionDisplay(position)  {
+       // var positionLatitude=(Math.abs(position[0])).toFixed(3) + "\xB0";
+        var positionLatitude= toDegMins(Math.abs(position[0]));
+        var positionLongitude=toDegMins(Math.abs(position[1]));
+        if(position[0]  >  0)  {
+            positionLatitude += "N";
+        }
+        else  {
+            positionLatitude += "S";
+        }
+        if(position[1]  >  0)  {
+            positionLongitude += "E";
+        }
+        else  {
+            positionLongitude += "W";
+        }
+        return positionLatitude + ",   " + positionLongitude;
+    }
+    
+    function pad(n) {
+    return (n < 10) ? ("0" + n) : n;
+}
+
+
+    
     $(document).ready(function () {
         var mapControl = createMapControl('map');
 
@@ -173,15 +202,36 @@
                 updateTimeline($('#timeSlider').val(), mapControl);
             }
         });
-        
+  
         // We need to handle the 'change' event for IE, but
         // 'input' for Chrome and Firefox in order to update smoothly
         // as the range input is dragged.
         $('#timeSlider').on('input', function() {
-           updateTimeline($(this).val(), mapControl);
+          updateTimeline($(this).val(), mapControl);
         });
         $('#timeSlider').on('change', function() {
            updateTimeline($(this).val(), mapControl);
+        });
+        
+        $('#timeBack').click(function() {
+           var curTime = parseInt($('#timeSlider').val());
+           curTime -=2;
+           if(curTime < 0) {
+                 curTime = 0;
+           }
+           $('#timeSlider').val(curTime);
+            updateTimeline(curTime, mapControl);
+        });
+        
+         $('#timeForward').click(function() {
+           var curTime = parseInt($('#timeSlider').val());
+           var maxval= $('#timeSlider').attr("max");
+           curTime +=2;
+           if(curTime >  maxval) {
+                 curTime = maxval;
+           }
+           $('#timeSlider').val(curTime);
+          updateTimeline(curTime, mapControl);
         });
         
          $('#barogram').on('plotclick', function (event, pos, item) {
