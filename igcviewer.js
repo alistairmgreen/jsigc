@@ -29,9 +29,10 @@
                 show: true
             },
             xaxis: {
-                mode: 'time',
-                timeformat: '%H:%M',
-                axisLabel: 'Time (UTC)'
+                axisLabel: 'Time',
+                tickFormatter: function (t, axis) {
+                     return moment(t).format('HH:mm');
+                }
             },
             yaxis: {
                 axisLabel: 'Altitude / ' + $('#altitudeUnits').val()
@@ -147,6 +148,7 @@
         timeZoneSelect.change(function () {
             moment.tz.setDefault($(this).val());
             if (igcFile !== null) {
+                barogramPlot = plotBarogram();
                 updateTimeline($('#timeSlider').val(), mapControl);
             }
         });
