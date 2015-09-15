@@ -58,7 +58,7 @@
         
         var unitName = $('#altitudeUnits').val();
         $('#timePositionDisplay').text(
-            igcFile.recordTime[timeIndex].toUTCString() + ': ' +
+            moment(igcFile.recordTime[timeIndex]).format('HH:mm:ss') + ': ' +
             (igcFile.pressureAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
             unitName + ' (barometric) / ' +
             (igcFile.gpsAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
@@ -135,6 +135,22 @@
     $(document).ready(function () {
         var mapControl = createMapControl('map');
 
+        var timeZoneSelect = $('#timeZoneSelect');
+        $.each(moment.tz.names(), function(index, name) {
+            timeZoneSelect.append(
+                 $('<option></option>', { value: name }).text(name));
+        });
+        var timeZone = 'UTC'; // There is no easy way to get local time zone!
+        timeZoneSelect.val(timeZone); 
+        moment.tz.setDefault(timeZone);
+        
+        timeZoneSelect.change(function () {
+            moment.tz.setDefault($(this).val());
+            if (igcFile !== null) {
+                updateTimeline($('#timeSlider').val(), mapControl);
+            }
+        });
+        
         $('#fileControl').change(function () {
             if (this.files.length > 0) {
                 var reader = new FileReader();
