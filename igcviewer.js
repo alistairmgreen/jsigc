@@ -56,7 +56,7 @@
         var unitName = $('#altitudeUnits').val();
         $('#timePositionDisplay').text(
            // igcFile.recordTime[timeIndex].toUTCString() + ': ' +
-             igcFile.recordTime[timeIndex].getHours() + ':' +pad( igcFile.recordTime[timeIndex].getMinutes()) + ':' + pad(igcFile.recordTime[timeIndex].getSeconds()) + ' UTC; ' + 
+             igcFile.recordTime[timeIndex].getUTCHours() + ':' +pad( igcFile.recordTime[timeIndex].getUTCMinutes()) + ':' + pad(igcFile.recordTime[timeIndex].getSeconds()) + ' UTC; ' + 
             (igcFile.pressureAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
             unitName + ' (barometric) / ' +
             (igcFile.gpsAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
