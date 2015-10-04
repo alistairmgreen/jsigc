@@ -77,8 +77,13 @@
     
     function displayIgc(mapControl) {
         // Display the headers.
+        var displayDate = moment(igcFile.recordTime[0]).format('LL');
         var headerTable = $('#headerInfo tbody');
-        headerTable.html('');
+        headerTable.html('')
+                   .append(
+                       $('<tr></tr>').append($('<th></th>').text('Date'))
+                              .append($('<td></td>').text(displayDate))
+                   );
         var headerName;
         var headerIndex;
         for (headerIndex = 0; headerIndex < igcFile.headers.length; headerIndex++) {
@@ -150,6 +155,7 @@
             if (igcFile !== null) {
                 barogramPlot = plotBarogram();
                 updateTimeline($('#timeSlider').val(), mapControl);
+                $('#headerInfo td').first().text(moment(igcFile.recordTime[0]).format('LL'));
             }
         });
         

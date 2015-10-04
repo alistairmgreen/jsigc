@@ -271,25 +271,6 @@ function parseIGC(igcFile) {
         }
     }
 
-    // We want to show the flight date including the time.
-    // This is important because if we force the display to be UTC,
-    // the time is shown as well. The toDateString method gives a date
-    // without a time, but converts implicitly to local, causing the
-    // day to be incorrect if the system clock is set to a negative offset
-    // from UTC (issue #3).
-    var displayDate;
-    if (model.recordTime.length > 0) {
-        displayDate = model.recordTime[0].toUTCString();
-    }
-    else {
-        displayDate = flightDate.toUTCString();
-    }
-    
-    model.headers.unshift({
-        name: 'Date',
-        value: displayDate
-    });
-
 // Extract takeoff and landing  names from model.task and reduce model.task.coordinates to what we want to plot
 // Throw away takeoff and landing coordinates as we won't be using them
 if(model.task.names.length > 0)  {
