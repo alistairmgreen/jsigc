@@ -14,10 +14,16 @@ body {
 
 #slider label {
     width: 6em;
+    vertical-align: top;
 }
-
+ 
+ #slider button {
+     width: 2em;
+    vertical-align: top;
+ }
+ 
 #slider input[type='range'] {
-    width: calc(100% - 6em);
+    width: calc(100% - 11em);
     padding-bottom: 0px; /* Default padding is huge in Internet Explorer.*/
 }
 
