@@ -218,7 +218,7 @@
         $('#timeBack').click(function() {
            var slider = $('#timeSlider');
            var curTime = parseInt(slider.val(), 10);
-           curTime -=2;
+           curTime--;
            if(curTime < 0) {
                  curTime = 0;
            }
@@ -230,7 +230,7 @@
            var slider = $('#timeSlider');
            var curTime = parseInt(slider.val(), 10);
            var maxval= slider.prop('max');
-           curTime +=2;
+           curTime++;
            if(curTime >  maxval) {
                  curTime = maxval;
            }
