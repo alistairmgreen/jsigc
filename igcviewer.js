@@ -5,6 +5,34 @@
     var barogramPlot = null;
     var altitudeConversionFactor = 1.0; // Conversion from metres to required units
     
+    function positionDisplay(position)  {
+        function toDegMins(degreevalue) {
+            var wholedegrees= Math.floor(degreevalue);
+            var minutevalue = (60*(degreevalue-wholedegrees)).toFixed(3);
+            return wholedegrees + '\u00B0\u00A0'  + minutevalue  + '\u00B4';
+        }
+    
+        var positionLatitude= toDegMins(Math.abs(position[0]));
+        var positionLongitude=toDegMins(Math.abs(position[1]));
+        if(position[0]  >  0)  {
+            positionLatitude += "N";
+        }
+        else  {
+            positionLatitude += "S";
+        }
+        if(position[1]  >  0)  {
+            positionLongitude += "E";
+        }
+        else  {
+            positionLongitude += "W";
+        }
+        return positionLatitude + ",   " + positionLongitude;
+    }
+    
+    function pad(n) {
+        return (n < 10) ? ("0" + n.toString()) : n.toString();
+    }
+    
     function plotBarogram() {
         var nPoints = igcFile.recordTime.length;
         var pressureBarogramData = [];
@@ -173,38 +201,7 @@
         $('#timeSlider').prop('max', igcFile.recordTime.length - 1);
         updateTimeline(0, mapControl);
     }
-    
-    function toDegMins(degreevalue) {
-        var wholedegrees= Math.floor(degreevalue);
-        var minutevalue = (60*(degreevalue-wholedegrees)).toFixed(3);
-        return wholedegrees +"\xB0 "  + minutevalue  + "\xB4";
-    }
-    
-    function positionDisplay(position)  {
-       // var positionLatitude=(Math.abs(position[0])).toFixed(3) + "\xB0";
-        var positionLatitude= toDegMins(Math.abs(position[0]));
-        var positionLongitude=toDegMins(Math.abs(position[1]));
-        if(position[0]  >  0)  {
-            positionLatitude += "N";
-        }
-        else  {
-            positionLatitude += "S";
-        }
-        if(position[1]  >  0)  {
-            positionLongitude += "E";
-        }
-        else  {
-            positionLongitude += "W";
-        }
-        return positionLatitude + ",   " + positionLongitude;
-    }
-    
-    function pad(n) {
-    return (n < 10) ? ("0" + n) : n;
-}
 
-
-    
     $(document).ready(function () {
         var mapControl = createMapControl('map');
 
@@ -269,31 +266,35 @@
         // 'input' for Chrome and Firefox in order to update smoothly
         // as the range input is dragged.
         $('#timeSlider').on('input', function() {
-          updateTimeline($(this).val(), mapControl);
+          var t = parseInt($(this).val(), 10);
+          updateTimeline(t, mapControl);
         });
         $('#timeSlider').on('change', function() {
-           updateTimeline($(this).val(), mapControl);
+           var t = parseInt($(this).val(), 10);
+           updateTimeline(t, mapControl);
         });
         
         $('#timeBack').click(function() {
-           var curTime = parseInt($('#timeSlider').val());
-           curTime -=2;
+           var slider = $('#timeSlider');
+           var curTime = parseInt(slider.val(), 10);
+           curTime--;
            if(curTime < 0) {
                  curTime = 0;
            }
-           $('#timeSlider').val(curTime);
-            updateTimeline(curTime, mapControl);
+           slider.val(curTime);
+           updateTimeline(curTime, mapControl);
         });
         
          $('#timeForward').click(function() {
-           var curTime = parseInt($('#timeSlider').val());
-           var maxval= $('#timeSlider').attr("max");
-           curTime +=2;
+           var slider = $('#timeSlider');
+           var curTime = parseInt(slider.val(), 10);
+           var maxval= slider.prop('max');
+           curTime++;
            if(curTime >  maxval) {
                  curTime = maxval;
            }
-           $('#timeSlider').val(curTime);
-          updateTimeline(curTime, mapControl);
+           slider.val(curTime);
+           updateTimeline(curTime, mapControl);
         });
         
          $('#barogram').on('plotclick', function (event, pos, item) {
