@@ -214,7 +214,7 @@
         });
         
         $('#timeBack').click(function() {
-           var curTime = parseInt($('#timeSlider').val());
+           var curTime = parseInt($('#timeSlider').val(), 10);
            curTime -=2;
            if(curTime < 0) {
                  curTime = 0;
@@ -224,7 +224,7 @@
         });
         
          $('#timeForward').click(function() {
-           var curTime = parseInt($('#timeSlider').val());
+           var curTime = parseInt($('#timeSlider').val(), 10);
            var maxval= $('#timeSlider').attr("max");
            curTime +=2;
            if(curTime >  maxval) {
