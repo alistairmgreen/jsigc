@@ -5,6 +5,34 @@
     var barogramPlot = null;
     var altitudeConversionFactor = 1.0; // Conversion from metres to required units
     
+    function positionDisplay(position)  {
+        function toDegMins(degreevalue) {
+            var wholedegrees= Math.floor(degreevalue);
+            var minutevalue = (60*(degreevalue-wholedegrees)).toFixed(3);
+            return wholedegrees +"\xB0 "  + minutevalue  + "\xB4";
+        }
+    
+        var positionLatitude= toDegMins(Math.abs(position[0]));
+        var positionLongitude=toDegMins(Math.abs(position[1]));
+        if(position[0]  >  0)  {
+            positionLatitude += "N";
+        }
+        else  {
+            positionLatitude += "S";
+        }
+        if(position[1]  >  0)  {
+            positionLongitude += "E";
+        }
+        else  {
+            positionLongitude += "W";
+        }
+        return positionLatitude + ",   " + positionLongitude;
+    }
+    
+    function pad(n) {
+        return (n < 10) ? ("0" + n.toString()) : n.toString();
+    }
+    
     function plotBarogram() {
         var nPoints = igcFile.recordTime.length;
         var pressureBarogramData = [];
@@ -129,38 +157,7 @@
         $('#timeSlider').prop('max', igcFile.recordTime.length - 1);
         updateTimeline(0, mapControl);
     }
-    
-    function toDegMins(degreevalue) {
-        var wholedegrees= Math.floor(degreevalue);
-        var minutevalue = (60*(degreevalue-wholedegrees)).toFixed(3);
-        return wholedegrees +"\xB0 "  + minutevalue  + "\xB4";
-    }
-    
-    function positionDisplay(position)  {
-       // var positionLatitude=(Math.abs(position[0])).toFixed(3) + "\xB0";
-        var positionLatitude= toDegMins(Math.abs(position[0]));
-        var positionLongitude=toDegMins(Math.abs(position[1]));
-        if(position[0]  >  0)  {
-            positionLatitude += "N";
-        }
-        else  {
-            positionLatitude += "S";
-        }
-        if(position[1]  >  0)  {
-            positionLongitude += "E";
-        }
-        else  {
-            positionLongitude += "W";
-        }
-        return positionLatitude + ",   " + positionLongitude;
-    }
-    
-    function pad(n) {
-    return (n < 10) ? ("0" + n) : n;
-}
 
-
-    
     $(document).ready(function () {
         var mapControl = createMapControl('map');
 
