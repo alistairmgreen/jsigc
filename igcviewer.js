@@ -9,7 +9,7 @@
         function toDegMins(degreevalue) {
             var wholedegrees= Math.floor(degreevalue);
             var minutevalue = (60*(degreevalue-wholedegrees)).toFixed(3);
-            return wholedegrees +"\xB0 "  + minutevalue  + "\xB4";
+            return wholedegrees + '\u00B0\u00A0'  + minutevalue  + '\u00B4';
         }
     
         var positionLatitude= toDegMins(Math.abs(position[0]));
