@@ -32,6 +32,45 @@
                 axisLabel: 'Time',
                 tickFormatter: function (t, axis) {
                      return moment(t).format('HH:mm');
+                },
+                ticks: function (axis) {
+                    var ticks = [];
+                    var startMoment = moment(axis.min);
+                    var endMoment = moment(axis.max);
+                    var durationMinutes = endMoment.diff(startMoment, 'minutes');
+                    var interval;
+                    if (durationMinutes <= 10) {
+                       interval = 1;
+                    }
+                    if (durationMinutes <= 50) {
+                       interval = 5;
+                    }
+                    else if (durationMinutes <= 100) {
+                       interval = 10;
+                    }
+                    else if (durationMinutes <= 150) {
+                       interval = 15;
+                    }
+                    else if (durationMinutes <= 300) {
+                       interval = 30;
+                    }
+                    else if (durationMinutes <= 600) {
+                       interval = 60;
+                    }
+                    else {
+                       interval = 120;
+                    }
+                    
+                    var tick = startMoment.clone();
+                    tick.minutes(0).seconds(0);
+                    while (tick < endMoment) {
+                        if (tick > startMoment) {
+                            ticks.push(tick.valueOf());
+                        }
+                        tick.add(interval, 'minutes');
+                    }
+                    
+                    return ticks;
                 }
             },
             yaxis: {
