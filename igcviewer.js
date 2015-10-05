@@ -5,6 +5,34 @@
     var barogramPlot = null;
     var altitudeConversionFactor = 1.0; // Conversion from metres to required units
     
+    function positionDisplay(position)  {
+        function toDegMins(degreevalue) {
+            var wholedegrees= Math.floor(degreevalue);
+            var minutevalue = (60*(degreevalue-wholedegrees)).toFixed(3);
+            return wholedegrees + '\u00B0\u00A0'  + minutevalue  + '\u00B4';
+        }
+    
+        var positionLatitude= toDegMins(Math.abs(position[0]));
+        var positionLongitude=toDegMins(Math.abs(position[1]));
+        if(position[0]  >  0)  {
+            positionLatitude += "N";
+        }
+        else  {
+            positionLatitude += "S";
+        }
+        if(position[1]  >  0)  {
+            positionLongitude += "E";
+        }
+        else  {
+            positionLongitude += "W";
+        }
+        return positionLatitude + ",   " + positionLongitude;
+    }
+    
+    function pad(n) {
+        return (n < 10) ? ("0" + n.toString()) : n.toString();
+    }
+    
     function plotBarogram() {
         var nPoints = igcFile.recordTime.length;
         var pressureBarogramData = [];
@@ -52,18 +80,16 @@
     
     function updateTimeline (timeIndex, mapControl) {
         var currentPosition = igcFile.latLong[timeIndex];
-        var startPosition = igcFile.latLong[0];
-        var distance = L.latLng(currentPosition[0], currentPosition[1]).distanceTo(
-            L.latLng(startPosition[0], startPosition[1])) / 1000.0;
-        
+        var positionText=positionDisplay(currentPosition);
         var unitName = $('#altitudeUnits').val();
         $('#timePositionDisplay').text(
-            igcFile.recordTime[timeIndex].toUTCString() + ': ' +
+           // igcFile.recordTime[timeIndex].toUTCString() + ': ' +
+             igcFile.recordTime[timeIndex].getUTCHours() + ':' +pad( igcFile.recordTime[timeIndex].getUTCMinutes()) + ':' + pad(igcFile.recordTime[timeIndex].getSeconds()) + ' UTC; ' + 
             (igcFile.pressureAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
             unitName + ' (barometric) / ' +
             (igcFile.gpsAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
             unitName + ' (GPS); ' +
-            distance.toFixed(1) + ' km from takeoff'
+            positionText
         );
         
         mapControl.setTimeMarker(timeIndex);
@@ -131,7 +157,7 @@
         $('#timeSlider').prop('max', igcFile.recordTime.length - 1);
         updateTimeline(0, mapControl);
     }
-    
+
     $(document).ready(function () {
         var mapControl = createMapControl('map');
 
@@ -173,15 +199,40 @@
                 updateTimeline($('#timeSlider').val(), mapControl);
             }
         });
-        
+  
         // We need to handle the 'change' event for IE, but
         // 'input' for Chrome and Firefox in order to update smoothly
         // as the range input is dragged.
         $('#timeSlider').on('input', function() {
-           updateTimeline($(this).val(), mapControl);
+          var t = parseInt($(this).val(), 10);
+          updateTimeline(t, mapControl);
         });
         $('#timeSlider').on('change', function() {
-           updateTimeline($(this).val(), mapControl);
+           var t = parseInt($(this).val(), 10);
+           updateTimeline(t, mapControl);
+        });
+        
+        $('#timeBack').click(function() {
+           var slider = $('#timeSlider');
+           var curTime = parseInt(slider.val(), 10);
+           curTime--;
+           if(curTime < 0) {
+                 curTime = 0;
+           }
+           slider.val(curTime);
+           updateTimeline(curTime, mapControl);
+        });
+        
+         $('#timeForward').click(function() {
+           var slider = $('#timeSlider');
+           var curTime = parseInt(slider.val(), 10);
+           var maxval= slider.prop('max');
+           curTime++;
+           if(curTime >  maxval) {
+                 curTime = maxval;
+           }
+           slider.val(curTime);
+           updateTimeline(curTime, mapControl);
         });
         
          $('#barogram').on('plotclick', function (event, pos, item) {
