@@ -207,10 +207,12 @@
         // 'input' for Chrome and Firefox in order to update smoothly
         // as the range input is dragged.
         $('#timeSlider').on('input', function() {
-          updateTimeline($(this).val(), mapControl);
+          var t = parseInt($(this).val(), 10);
+          updateTimeline(t, mapControl);
         });
         $('#timeSlider').on('change', function() {
-           updateTimeline($(this).val(), mapControl);
+           var t = parseInt($(this).val(), 10);
+           updateTimeline(t, mapControl);
         });
         
         $('#timeBack').click(function() {
