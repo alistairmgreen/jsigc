@@ -216,24 +216,26 @@
         });
         
         $('#timeBack').click(function() {
-           var curTime = parseInt($('#timeSlider').val(), 10);
+           var slider = $('#timeSlider');
+           var curTime = parseInt(slider.val(), 10);
            curTime -=2;
            if(curTime < 0) {
                  curTime = 0;
            }
-           $('#timeSlider').val(curTime);
-            updateTimeline(curTime, mapControl);
+           slider.val(curTime);
+           updateTimeline(curTime, mapControl);
         });
         
          $('#timeForward').click(function() {
-           var curTime = parseInt($('#timeSlider').val(), 10);
-           var maxval= $('#timeSlider').attr("max");
+           var slider = $('#timeSlider');
+           var curTime = parseInt(slider.val(), 10);
+           var maxval= slider.prop('max');
            curTime +=2;
            if(curTime >  maxval) {
                  curTime = maxval;
            }
-           $('#timeSlider').val(curTime);
-          updateTimeline(curTime, mapControl);
+           slider.val(curTime);
+           updateTimeline(curTime, mapControl);
         });
         
          $('#barogram').on('plotclick', function (event, pos, item) {
