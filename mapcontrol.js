@@ -118,6 +118,52 @@ function createMapControl(elementName) {
             }
         },
 
+ zapAirspace: function()  {
+                if (mapLayers.airspace) {
+                map.removeLayer(mapLayers.airspace);
+                layersControl.removeLayer(mapLayers.airspace);
+            }
+ },
+
+ getShowbounds: function()  {
+     var limitsnow=map.getBounds();
+     var showlimits = [];
+     showlimits['north']= limitsnow.getNorth() + 0.5;
+     showlimits['south']= limitsnow.getSouth() - 0.5;
+     var longoffset=  0.5/Math.cos(Math.PI*(showlimits['south'] + showlimits['north'])/360);
+    showlimits['east']=limitsnow.getEast() + longoffset;
+    showlimits['west']= limitsnow.getWest() - longoffset;
+    return showlimits;
+ },
+ 
+ addAirspace: function(airdata,clip) {
+      var i;
+var polyPoints;
+var suacircle;
+var airStyle = {
+    "color": "black",
+    "weight": 1,
+    "opacity": 0.20,
+    "fillColor": "red",
+    "smoothFactor": 0.1
+};
+var suafeatures=[];
+this.zapAirspace();
+for(i=0 ; i < airdata.polygons.length;i++) {
+       if(airdata.polygons[i].base < clip)  {
+                  polyPoints=airdata.polygons[i].coords;
+                suafeatures.push(L.polygon(polyPoints,airStyle));
+       }
+ }
+  for(i=0; i < airdata.circles.length; i++) {
+     if (airdata.circles[i].base < clip)  {
+         suafeatures.push(L.circle(airdata.circles[i].centre, 1000*airdata.circles[i].radius, airStyle));
+     }
+     }
+         mapLayers.airspace = L.layerGroup(suafeatures).addTo(map); 
+         layersControl.addOverlay(mapLayers.airspace, 'Airspace');
+        },
+                     
         addTrack: function (latLong) {
             trackLatLong = latLong;
             var trackLine = L.polyline(latLong, { color: 'red' });
@@ -130,8 +176,8 @@ function createMapControl(elementName) {
 
             map.fitBounds(trackLine.getBounds());
         },
-
-      addTask: function (coordinates, names) {
+        
+       addTask: function (coordinates, names) {
             //Clearer if we don't show track to and from start line and finish line, as we are going to show lines
             var taskLayers = [L.polyline(coordinates, { color: 'blue' })];
             var lineDrawOptions = {
@@ -163,8 +209,8 @@ function createMapControl(elementName) {
                         taskLayers.push(startline);
                         break;
                     case (coordinates.length - 1):
-                        var finishline = getLine(coordinates[j], coordinates[j - 1], finishLineRadius, lineDrawOptions);
-                        taskLayers.push(finishline);
+                       var finishline = getLine(coordinates[j], coordinates[j - 1], finishLineRadius, lineDrawOptions);
+                       taskLayers.push(finishline);
                         break;
                     default:
                         taskLayers.push(L.circle(coordinates[j], tpCircleRadius, sectorDrawOptions));

@@ -81,6 +81,10 @@ table#headerInfo {
     border-spacing: 1em 0;
 }
 
+#task {
+   display: none;
+}
+
 #headerInfo th {
     text-align: left;
     font-weight: bold;
