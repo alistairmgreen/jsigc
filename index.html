@@ -45,13 +45,9 @@
             <strong>Please enable JavaScript to use this application.</strong>
         </p>
     </noscript>
-
-    <label for="fileControl">Select a file to view:</label>
-    <input id="fileControl" type="file" />
-
     <p>
-        <em>Note:</em> The file will be processed entirely within your web browser.
-        Nothing will be uploaded to the Internet.
+    <b>Warning:</b> Unless the "no airspace" option is selected below, outlines of controlled airspace  will be displayed on the map provided we have data for the area.<br>
+    This information may not be accurate,  current or complete and is not valid for navigation or flight planning.   Always consult the official publications for current and correct information. 
     </p>
 
     <div id="errorMessage">
@@ -60,31 +56,47 @@
     <h2> Preferences </h2>
     <p>
         <label for="altitudeUnits">Altitude units:</label>
-        <select id="altitudeUnits">
-            <option value="metres">Metres</option>
+        <select id="altitudeUnits" autocomplete="off">
             <option value="feet">Feet</option>
+            <option value="metres">Metres</option>
         </select>
+        &nbsp;&nbsp; 
+        <label for="airclip">Clip airspace above:</label>
+        <select id="airclip" autocomplete="off">
+           <option value="0">No Airspace</option>
+            <option value="4501">4500</option>
+            <option value="6001" selected>6000</option>
+            <option value="9001">9000</option>
+            <option value="12001">12000</option>
+            <option value="19501">19500</option>
+        </select>
+        feet
     </p>
-    
     <p>
         <label for="timeZoneSelect">Time zone:</label>
         <select id="timeZoneSelect">
         </select>
     </p>
+    <hr>
+    <p>
+        <label for="fileControl">Select a file to view:</label>
+        <input id="fileControl" type="file" />
+    </p>
 
+    <div id="task">
+            <h2> Task </h2>
+            <ul>
+            </ul>
+            <span id="tasklength"></span>
+        </div>
+    
     <div id="igcFileDisplay">
-        <h2> Flight Information </h2>
 
+        <h2> Flight Information </h2>
         <table id="headerInfo">
             <tbody></tbody>
         </table>
 
-        <div id="task">
-            <h2> Task </h2>
-            <ul>
-            </ul>
-        </div>
-        
         <div id="mapWrapper">
             <div id="map"></div>
             <div id="slider">
@@ -112,5 +124,6 @@
             <li>Icons by <a href="https://fortawesome.github.io/Font-Awesome/">Font Awesome</a></li>
         </ul>
     </p>
+    <p>Airspace data was sourced from <a href="http://soaringweb.org/Airspace/HomePage.html" target="_blank">soaringweb.org</a>.</p>
 </body>
 </html>

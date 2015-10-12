@@ -36,8 +36,8 @@ function createMapControl(elementName) {
         //assume earth is a sphere circumference 40030 Km 
         var latdelta = linerad * longdiff / hypotenuse / 111.1949269;
         var longdelta = linerad * latdiff / hypotenuse / 111.1949269 / Math.cos(startrads);
-        var linestart = new L.LatLng(pt1[0] - latdelta, pt1[1] - longdelta);
-        var lineend = new L.LatLng(pt1[0] + latdelta, longdelta + pt1[1]);
+        var linestart =  L.latLng(pt1[0] - latdelta, pt1[1] - longdelta);
+        var lineend =  L.latLng(pt1[0] + latdelta, longdelta + pt1[1]);
         var polylinePoints = [linestart, lineend];
         var polylineOptions = {
             color: 'green',
@@ -45,7 +45,7 @@ function createMapControl(elementName) {
             opacity: 0.8
         };
 
-        return new L.Polyline(polylinePoints, drawOptions);
+        return L.polyline(polylinePoints, drawOptions);
     }
 
     function getTpSector(centrept, pt1, pt2, sectorRadius, sectorAngle, drawOptions) {
@@ -118,6 +118,52 @@ function createMapControl(elementName) {
             }
         },
 
+ zapAirspace: function()  {
+                if (mapLayers.airspace) {
+                map.removeLayer(mapLayers.airspace);
+                layersControl.removeLayer(mapLayers.airspace);
+            }
+ },
+
+ getShowbounds: function()  {
+     var limitsnow=map.getBounds();
+     var showlimits = [];
+     showlimits['north']= limitsnow.getNorth() + 0.5;
+     showlimits['south']= limitsnow.getSouth() - 0.5;
+     var longoffset=  0.5/Math.cos(Math.PI*(showlimits['south'] + showlimits['north'])/360);
+    showlimits['east']=limitsnow.getEast() + longoffset;
+    showlimits['west']= limitsnow.getWest() - longoffset;
+    return showlimits;
+ },
+ 
+ addAirspace: function(airdata,clip) {
+      var i;
+var polyPoints;
+var suacircle;
+var airStyle = {
+    "color": "black",
+    "weight": 1,
+    "opacity": 0.20,
+    "fillColor": "red",
+    "smoothFactor": 0.1
+};
+var suafeatures=[];
+this.zapAirspace();
+for(i=0 ; i < airdata.polygons.length;i++) {
+       if(airdata.polygons[i].base < clip)  {
+                  polyPoints=airdata.polygons[i].coords;
+                suafeatures.push(L.polygon(polyPoints,airStyle));
+       }
+ }
+  for(i=0; i < airdata.circles.length; i++) {
+     if (airdata.circles[i].base < clip)  {
+         suafeatures.push(L.circle(airdata.circles[i].centre, 1000*airdata.circles[i].radius, airStyle));
+     }
+     }
+         mapLayers.airspace = L.layerGroup(suafeatures).addTo(map); 
+         layersControl.addOverlay(mapLayers.airspace, 'Airspace');
+        },
+                     
         addTrack: function (latLong) {
             trackLatLong = latLong;
             var trackLine = L.polyline(latLong, { color: 'red' });
@@ -130,13 +176,21 @@ function createMapControl(elementName) {
 
             map.fitBounds(trackLine.getBounds());
         },
-
-        addTask: function (coordinates, names) {
+        
+       addTask: function (coordinates, names) {
             //Clearer if we don't show track to and from start line and finish line, as we are going to show lines
             var taskLayers = [L.polyline(coordinates, { color: 'blue' })];
-            var taskDrawOptions = {
-                color: 'green',
-                weight: 3,
+            var lineDrawOptions = {
+                fillColor: 'green',
+                color: 'black',
+                weight: 2,
+                opacity: 0.8
+            };
+            var sectorDrawOptions = {
+                fillColor: 'green',
+                fillOpacity :0.1,
+                color: 'black',
+                weight: 1,
                 opacity: 0.8
             };
             //definitions from BGA rules
@@ -151,16 +205,16 @@ function createMapControl(elementName) {
                 taskLayers.push(L.marker(coordinates[j]).bindPopup(names[j]));
                 switch (j) {
                     case 0:
-                        var startline = getLine(coordinates[0], coordinates[1], startLineRadius, taskDrawOptions);
+                        var startline = getLine(coordinates[0], coordinates[1], startLineRadius, lineDrawOptions);
                         taskLayers.push(startline);
                         break;
                     case (coordinates.length - 1):
-                        var finishline = getLine(coordinates[j], coordinates[j - 1], finishLineRadius, taskDrawOptions);
-                        taskLayers.push(finishline);
+                       var finishline = getLine(coordinates[j], coordinates[j - 1], finishLineRadius, lineDrawOptions);
+                       taskLayers.push(finishline);
                         break;
                     default:
-                        taskLayers.push(L.circle(coordinates[j], tpCircleRadius, taskDrawOptions));
-                        var tpsector = getTpSector(coordinates[j], coordinates[j - 1], coordinates[j + 1], tpSectorRadius, tpSectorAngle, taskDrawOptions);
+                        taskLayers.push(L.circle(coordinates[j], tpCircleRadius, sectorDrawOptions));
+                        var tpsector = getTpSector(coordinates[j], coordinates[j - 1], coordinates[j + 1], tpSectorRadius, tpSectorAngle,sectorDrawOptions);
                         taskLayers.push(tpsector);
                 }
             }
