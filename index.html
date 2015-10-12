@@ -8,9 +8,10 @@
     <link rel="stylesheet" href="lib/leaflet-awesome-markers/leaflet.awesome-markers.css" />
     <link rel="stylesheet" href="igcviewer.css" />
 
+    <script src="lib/moment.min.js"></script>
+    <script src="lib/moment-timezone-with-data.min.js"></script>
     <script src="lib/jquery-2.1.3.min.js"></script>
     <script src="lib/jquery.flot.min.js"></script>
-    <script src="lib/jquery.flot.time.min.js"></script>
     <script src="lib/jquery.flot.axislabels.js"></script>
     <script src="lib/jquery.flot.resize.min.js"></script>
     <script src="lib/jquery.flot.crosshair.js"></script>
@@ -64,6 +65,12 @@
             <option value="feet">Feet</option>
         </select>
     </p>
+    
+    <p>
+        <label for="timeZoneSelect">Time zone:</label>
+        <select id="timeZoneSelect">
+        </select>
+    </p>
 
     <div id="igcFileDisplay">
         <h2> Flight Information </h2>
@@ -101,6 +108,7 @@
             <li><a href="http://leafletjs.com/">Leaflet.js interactive map library</a></li>
             <li><a href="http://www.flotcharts.org/">Flot Charts</a></li>
             <li><a href="https://github.com/markrcote/flot-axislabels">Flot Axis Labels plugin</a></li>
+            <li><a href="http://momentjs.com/timezone">Moment Timezone library</a></li>
             <li>Icons by <a href="https://fortawesome.github.io/Font-Awesome/">Font Awesome</a></li>
         </ul>
     </p>
