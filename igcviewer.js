@@ -60,6 +60,34 @@ function showAirspace(mapControl)  {
                  }                       
         }    
     
+    function positionDisplay(position)  {
+        function toDegMins(degreevalue) {
+            var wholedegrees= Math.floor(degreevalue);
+            var minutevalue = (60*(degreevalue-wholedegrees)).toFixed(3);
+            return wholedegrees + '\u00B0\u00A0'  + minutevalue  + '\u00B4';
+        }
+    
+        var positionLatitude= toDegMins(Math.abs(position[0]));
+        var positionLongitude=toDegMins(Math.abs(position[1]));
+        if(position[0]  >  0)  {
+            positionLatitude += "N";
+        }
+        else  {
+            positionLatitude += "S";
+        }
+        if(position[1]  >  0)  {
+            positionLongitude += "E";
+        }
+        else  {
+            positionLongitude += "W";
+        }
+        return positionLatitude + ",   " + positionLongitude;
+    }
+    
+    function pad(n) {
+        return (n < 10) ? ("0" + n.toString()) : n.toString();
+    }
+    
     function plotBarogram() {
         var nPoints = igcFile.recordTime.length;
         var pressureBarogramData = [];
@@ -84,9 +112,49 @@ function showAirspace(mapControl)  {
                 show: true
             },
             xaxis: {
-                mode: 'time',
-                timeformat: '%H:%M',
-                axisLabel: 'Time (UTC)'
+                axisLabel: 'Time',
+                tickFormatter: function (t, axis) {
+                     return moment(t).format('HH:mm');
+                },
+                ticks: function (axis) {
+                    var ticks = [];
+                    var startMoment = moment(axis.min);
+                    var endMoment = moment(axis.max);
+                    var durationMinutes = endMoment.diff(startMoment, 'minutes');
+                    var interval;
+                    if (durationMinutes <= 10) {
+                       interval = 1;
+                    }
+                    if (durationMinutes <= 50) {
+                       interval = 5;
+                    }
+                    else if (durationMinutes <= 100) {
+                       interval = 10;
+                    }
+                    else if (durationMinutes <= 150) {
+                       interval = 15;
+                    }
+                    else if (durationMinutes <= 300) {
+                       interval = 30;
+                    }
+                    else if (durationMinutes <= 600) {
+                       interval = 60;
+                    }
+                    else {
+                       interval = 120;
+                    }
+                    
+                    var tick = startMoment.clone();
+                    tick.minutes(0).seconds(0);
+                    while (tick < endMoment) {
+                        if (tick > startMoment) {
+                            ticks.push(tick.valueOf());
+                        }
+                        tick.add(interval, 'minutes');
+                    }
+                    
+                    return ticks;
+                }
             },
             yaxis: {
                 axisLabel: 'Altitude / ' + $('#altitudeUnits').val()
@@ -110,7 +178,7 @@ function showAirspace(mapControl)  {
         var positionText=positionDisplay(currentPosition);
         var unitName = $('#altitudeUnits').val();
         $('#timePositionDisplay').text(
-             igcFile.recordTime[timeIndex].getUTCHours() + ':' +pad( igcFile.recordTime[timeIndex].getUTCMinutes()) + ':' + pad(igcFile.recordTime[timeIndex].getSeconds()) + ' UTC; ' + 
+            moment(igcFile.recordTime[timeIndex]).format('HH:mm:ss') + ': ' +
             (igcFile.pressureAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
             unitName + ' (barometric) / ' +
             (igcFile.gpsAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
@@ -136,9 +204,13 @@ function showAirspace(mapControl)  {
                 $('#task').hide();
                 }
         // Display the headers.
+        var displayDate = moment(igcFile.recordTime[0]).format('LL');
         var headerTable = $('#headerInfo tbody');
-        headerTable.html('');
-       // alert(igcFile.headers.length);
+        headerTable.html('')
+                   .append(
+                       $('<tr></tr>').append($('<th></th>').text('Date'))
+                              .append($('<td></td>').text(displayDate))
+                   );
         var headerName;
         var headerIndex;
         for (headerIndex = 0; headerIndex < igcFile.headers.length; headerIndex++) {
@@ -188,9 +260,27 @@ function showAirspace(mapControl)  {
 }
 
 
-    
+
     $(document).ready(function () {
         var mapControl = createMapControl('map');
+        var timeZoneSelect = $('#timeZoneSelect');
+        $.each(moment.tz.names(), function(index, name) {
+            timeZoneSelect.append(
+                 $('<option></option>', { value: name }).text(name));
+        });
+        var timeZone = 'UTC'; // There is no easy way to get local time zone!
+        timeZoneSelect.val(timeZone); 
+        moment.tz.setDefault(timeZone);
+        
+        timeZoneSelect.change(function () {
+            moment.tz.setDefault($(this).val());
+            if (igcFile !== null) {
+                barogramPlot = plotBarogram();
+                updateTimeline($('#timeSlider').val(), mapControl);
+                $('#headerInfo td').first().text(moment(igcFile.recordTime[0]).format('LL'));
+            }
+        });
+        
         $('#fileControl').change(function () {
             if (this.files.length > 0) {
                 var reader = new FileReader();
@@ -235,10 +325,35 @@ function showAirspace(mapControl)  {
         // 'input' for Chrome and Firefox in order to update smoothly
         // as the range input is dragged.
         $('#timeSlider').on('input', function() {
-          updateTimeline($(this).val(), mapControl);
+          var t = parseInt($(this).val(), 10);
+          updateTimeline(t, mapControl);
         });
         $('#timeSlider').on('change', function() {
-           updateTimeline($(this).val(), mapControl);
+           var t = parseInt($(this).val(), 10);
+           updateTimeline(t, mapControl);
+        });
+        
+        $('#timeBack').click(function() {
+           var slider = $('#timeSlider');
+           var curTime = parseInt(slider.val(), 10);
+           curTime--;
+           if(curTime < 0) {
+                 curTime = 0;
+           }
+           slider.val(curTime);
+           updateTimeline(curTime, mapControl);
+        });
+        
+         $('#timeForward').click(function() {
+           var slider = $('#timeSlider');
+           var curTime = parseInt(slider.val(), 10);
+           var maxval= slider.prop('max');
+           curTime++;
+           if(curTime >  maxval) {
+                 curTime = maxval;
+           }
+           slider.val(curTime);
+           updateTimeline(curTime, mapControl);
         });
 
         $('#airclip').change(function() {
