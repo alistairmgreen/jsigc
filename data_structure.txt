@@ -29,3 +29,8 @@ westlim:  double  //most westerly point of the  circle
 base:  integer  unsigned (2 byte) //base of airspace in feet (assumes equivalence of feet and flight level)
 centre: varchar(22)  //coordinates of the centre already in string format: "[xx.xxxxx,xxx.xxxxx]".  Five decimal places
 radius: double //radius of the circle in nautical miles
+
+Table countries:
+country:   char(2)  //2 character country code- same as used for internet domains. Primary key
+updated: date //effective date of the airspace source file
+source: varchar(40) //url of the airspace source Database

@@ -91,6 +91,10 @@ table#headerInfo {
    display: none;
 }
 
+#airspace_info {
+display: none;
+}
+
 #headerInfo th {
     text-align: left;
     font-weight: bold;

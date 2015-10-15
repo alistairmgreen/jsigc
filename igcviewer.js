@@ -11,6 +11,8 @@ function showAirspace(mapControl)  {
     if(clip!==0) {
     $.post("getairspace.php",{maxNorth: showbounds['north'], minNorth: showbounds['south'],maxEast:showbounds['east'] ,minEast:showbounds['west']} , function(data,status) {
               if(status==="success")  {
+                     $('#airspace_src').html(data.country);
+                     $('#airspace_info').show();
                      mapControl.addAirspace(data,clip);
                        }
     },"json");
