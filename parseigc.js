@@ -214,7 +214,7 @@ function parseIGC(igcFile) {
             landing: ""
         }
     };
-
+    var taskpoints=[];
     // The first line should begin with 'A' followed by
     // a 3-character manufacturer Id and a 3-character serial number.
     if (!(/^A[\w]{6}/).test(igcLines[0])) {
@@ -233,7 +233,7 @@ function parseIGC(igcFile) {
     });
 
     var flightDate = extractDate(igcFile);
-
+    var taskpoints= [];
     var lineIndex;
     var positionData;
     var recordType;
@@ -255,11 +255,10 @@ function parseIGC(igcFile) {
                 break;
 
             case 'C': // Task declaration
-                turnpoint = parseTask(currentLine);
-                if (turnpoint) {
-                    model.task.coordinates.push(turnpoint.latLong);
-                    model.task.names.push(turnpoint.name);
-                }
+                var taskRegex = /^C([\d]{7}[NS][\d]{8}[EW])(.*)/;
+               if( taskRegex.test(currentLine)) {
+                   taskpoints.push(currentLine.trim());
+                    }
                 break;
 
             case 'H': // Header information
@@ -271,27 +270,31 @@ function parseIGC(igcFile) {
         }
     }
 
-// Extract takeoff and landing  names from model.task and reduce model.task.coordinates to what we want to plot
-// Throw away takeoff and landing coordinates as we won't be using them
-if(model.task.names.length > 0)  {
-    var takeoffname=model.task.takeoff=model.task.names.shift();
-   if  (model.task.coordinates[0][0]!==0)  {
-       model.task.takeoff=takeoffname;
-   }
+//No need to use regex match at this stage as we've already filtered
+// Extract takeoff and landing  names from  declaration
+if(taskpoints.length > 0)  {
+var takeoff= taskpoints.shift();
+var landing= taskpoints.pop();
+model.task.takeoff=takeoff.slice(18);
+model.task.landing=landing.slice(18);
+}
 else {
-            model.task.takeoff="";
-   }
-  
-model.task.coordinates.shift();
-    var landingname=model.task.names.pop();
-    if  (model.task.coordinates[model.task.coordinates.length-1][0]!==0)  {
-       model.task.landing=landingname;
-   }
-   else     {
-            model.task.landing="";
-     }
-    model.task.coordinates.pop();
+    model.task.takeoff= "";
+    model.task.landing= "";
+}
+//Extract remaining declaration information
+var turnpoint=parseTask(taskpoints[0]);
+model.task.names.push(turnpoint.name);
+model.task.coordinates.push(turnpoint.latLong);
+var i;
+for(i=1; i < (taskpoints.length -1); i++) {
+    //comparing strings not floats
+    if(taskpoints[i].slice(0,17) !== taskpoints[i-1].slice(0,17)) {
+   turnpoint=parseTask(taskpoints[i]);
+   model.task.names.push(turnpoint.name);
+   model.task.coordinates.push(turnpoint.latLong);
     }
+}
 
     return model;
 }

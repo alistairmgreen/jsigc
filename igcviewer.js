@@ -4,12 +4,60 @@
     var igcFile = null;
     var barogramPlot = null;
     var altitudeConversionFactor =  3.2808399; // Conversion from metres to required units
+    var timezone =  {
+            zonename:  "Europe/London",
+            zoneabbr: "UTC",
+            offset: 0,
+            dst: false
+        };
+
+//get timezone data from timezonedb.  Via php to avoid cross-domain data request from the browser
+//Timezone dependent processes run  on file load are here as request is asynchronous
+//If the request fails or times out, silently reverts to default (UTC)
+function gettimezone(igcFile,mapControl)  {
+    var flightdate= igcFile.recordTime[0];
+   $.ajax({
+                   url: "gettimezone.php",
+                   data:  {
+                             stamp: flightdate/1000,
+                             lat: igcFile.latLong[0][0],
+                             lon: igcFile.latLong[0][1]
+                              },
+                      timeout: 3000,
+                      method: "POST",
+                      dataType: "json",
+                     success:   function(data) {
+                         if(data.status==="OK")  {
+                         timezone.zonename=data.zoneName;
+                          timezone.zoneabbr=data.abbreviation;
+                           timezone.offset=1000*parseFloat(data.gmtOffset);
+                           if (data.dst==="1")  {
+                               timezone.zonename += ", daylight saving";
+                           }
+                         }
+                              }  ,
+                        complete: function() {
+                        //Local date may not be the same as UTC date
+                        var localdate=new Date(flightdate.getTime() + timezone.offset);
+                        $('#datecell').text(localdate.toDateString());
+                        barogramPlot = plotBarogram(igcFile);
+                        updateTimeline(0, mapControl);
+                        }
+});
+}
    
 function showAirspace(mapControl)  {
     var clip=Number( $("#airclip").val());
     var showbounds=mapControl.getShowbounds();
     if(clip!==0) {
-    $.post("getairspace.php",{maxNorth: showbounds['north'], minNorth: showbounds['south'],maxEast:showbounds['east'] ,minEast:showbounds['west']} , function(data,status) {
+    $.post("getairspace.php",
+           {
+               maxNorth: showbounds['north'],
+               minNorth: showbounds['south'],
+               maxEast:showbounds['east'] ,
+                minEast:showbounds['west']
+        } ,
+              function(data,status) {
               if(status==="success")  {
                      $('#airspace_src').html(data.country);
                      $('#airspace_info').show();
@@ -20,7 +68,6 @@ function showAirspace(mapControl)  {
 }
 
     function showDeclaration(task)  {
-        //No longer testing for empty start coordinates as this is done before function is called
         $('#task').show();
         var taskList = $('#task ul').first().html('');
          var j;
@@ -90,75 +137,34 @@ function showAirspace(mapControl)  {
         return (n < 10) ? ("0" + n.toString()) : n.toString();
     }
     
-    function plotBarogram() {
+    function plotBarogram(igcFile) {
         var nPoints = igcFile.recordTime.length;
         var pressureBarogramData = [];
         var gpsBarogramData = [];
         var j;
         var timestamp;
-
         for (j = 0; j < nPoints; j++) {
-            timestamp = igcFile.recordTime[j].getTime();
+            timestamp = igcFile.recordTime[j].getTime() + timezone.offset;
             pressureBarogramData.push([timestamp, igcFile.pressureAltitude[j] * altitudeConversionFactor]);
             gpsBarogramData.push([timestamp, igcFile.gpsAltitude[j] * altitudeConversionFactor]);
         }
-
         var baro = $.plot($('#barogram'), [{
             label: 'Pressure altitude',
             data: pressureBarogramData
         }, {
             label: 'GPS altitude',
             data: gpsBarogramData
-        }], {
-            axisLabels: {
+        }],
+        {
+             axisLabels: {
                 show: true
             },
-            xaxis: {
-                axisLabel: 'Time',
-                tickFormatter: function (t, axis) {
-                     return moment(t).format('HH:mm');
-                },
-                ticks: function (axis) {
-                    var ticks = [];
-                    var startMoment = moment(axis.min);
-                    var endMoment = moment(axis.max);
-                    var durationMinutes = endMoment.diff(startMoment, 'minutes');
-                    var interval;
-                    if (durationMinutes <= 10) {
-                       interval = 1;
-                    }
-                    if (durationMinutes <= 50) {
-                       interval = 5;
-                    }
-                    else if (durationMinutes <= 100) {
-                       interval = 10;
-                    }
-                    else if (durationMinutes <= 150) {
-                       interval = 15;
-                    }
-                    else if (durationMinutes <= 300) {
-                       interval = 30;
-                    }
-                    else if (durationMinutes <= 600) {
-                       interval = 60;
-                    }
-                    else {
-                       interval = 120;
-                    }
-                    
-                    var tick = startMoment.clone();
-                    tick.minutes(0).seconds(0);
-                    while (tick < endMoment) {
-                        if (tick > startMoment) {
-                            ticks.push(tick.valueOf());
-                        }
-                        tick.add(interval, 'minutes');
-                    }
-                    
-                    return ticks;
-                }
+           xaxis: {
+                mode: 'time',
+                timeformat: '%H:%M',
+                axisLabel: 'Time (' + timezone.zonename +')'
             },
-            yaxis: {
+         yaxis: {
                 axisLabel: 'Altitude / ' + $('#altitudeUnits').val()
             },
             
@@ -170,8 +176,8 @@ function showAirspace(mapControl)  {
                 clickable: true,
                 autoHighlight: false
             }
-        });
-        
+        }
+        );
         return baro;
     }
     
@@ -179,26 +185,25 @@ function showAirspace(mapControl)  {
         var currentPosition = igcFile.latLong[timeIndex];
         var positionText=positionDisplay(currentPosition);
         var unitName = $('#altitudeUnits').val();
-        $('#timePositionDisplay').text(
-            moment(igcFile.recordTime[timeIndex]).format('HH:mm:ss') + ': ' +
+        //add in offset from UTC then convert back to UTC to get correct time in timezone!
+        var adjustedTime= new Date(igcFile.recordTime[timeIndex].getTime() + timezone.offset);
+       $('#timePositionDisplay').text(adjustedTime.getUTCHours() + ':' +pad(adjustedTime.getUTCMinutes()) + ':' + pad(adjustedTime.getSeconds()) +  " " + timezone.zoneabbr + '; '+ 
             (igcFile.pressureAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
             unitName + ' (barometric) / ' +
             (igcFile.gpsAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
             unitName + ' (GPS); ' +
-            positionText
-        );
-        
+            positionText);
         mapControl.setTimeMarker(timeIndex);
         
         barogramPlot.lockCrosshair({
-           x: igcFile.recordTime[timeIndex].getTime(),
+           x: adjustedTime.getTime(),
            y: igcFile.pressureAltitude[timeIndex] * altitudeConversionFactor
         });
     }
     
     function displayIgc(mapControl) {
         //Display task if there is anything to display
-        if ((igcFile.task.coordinates.length > 0) && (igcFile.task.coordinates[0][0]!==0))    {
+        if ((igcFile.task.coordinates.length > 1) && (igcFile.task.coordinates[0][0]!==0))    {
                showDeclaration(igcFile.task);
                 mapControl.addTask(igcFile.task.coordinates, igcFile.task.names);
                 }
@@ -206,13 +211,8 @@ function showAirspace(mapControl)  {
                 $('#task').hide();
                 }
         // Display the headers.
-        var displayDate = moment(igcFile.recordTime[0]).format('LL');
         var headerTable = $('#headerInfo tbody');
-        headerTable.html('')
-                   .append(
-                       $('<tr></tr>').append($('<th></th>').text('Date'))
-                              .append($('<td></td>').text(displayDate))
-                   );
+       //Delay display of date till we get the timezone
         var headerName;
         var headerIndex;
         for (headerIndex = 0; headerIndex < igcFile.headers.length; headerIndex++) {
@@ -226,10 +226,11 @@ function showAirspace(mapControl)  {
         $('#igcFileDisplay').show();
         
         mapControl.addTrack(igcFile.latLong);
-        barogramPlot = plotBarogram(igcFile);
+        //Barogram is now plotted on "complete" event of timezone query
+        gettimezone(igcFile,mapControl);
         showAirspace(mapControl);
         $('#timeSlider').prop('max', igcFile.recordTime.length - 1);
-        updateTimeline(0, mapControl);
+        //updateTimeline(0, mapControl);
     }
     
     function toDegMins(degreevalue) {
@@ -264,25 +265,7 @@ function showAirspace(mapControl)  {
 
 
     $(document).ready(function () {
-        var mapControl = createMapControl('map');
-        var timeZoneSelect = $('#timeZoneSelect');
-        $.each(moment.tz.names(), function(index, name) {
-            timeZoneSelect.append(
-                 $('<option></option>', { value: name }).text(name));
-        });
-        var timeZone = 'UTC'; // There is no easy way to get local time zone!
-        timeZoneSelect.val(timeZone); 
-        moment.tz.setDefault(timeZone);
-        
-        timeZoneSelect.change(function () {
-            moment.tz.setDefault($(this).val());
-            if (igcFile !== null) {
-                barogramPlot = plotBarogram();
-                updateTimeline($('#timeSlider').val(), mapControl);
-                $('#headerInfo td').first().text(moment(igcFile.recordTime[0]).format('LL'));
-            }
-        });
-        
+        var mapControl = createMapControl('map');        
         $('#fileControl').change(function () {
             if (this.files.length > 0) {
                 var reader = new FileReader();

@@ -1,9 +1,12 @@
 <?php
+header('Access-Control-Allow-Origin: *'); 
+header('Access-Control-Allow-Methods: POST');
 require_once("../db_inc.php");
 $countries=[];
 echo "{\n\"polygons\": [\n";
 $mysqli=new mysqli($dbserver,$username,$password,$database);
 $whereclause= "northlim  > ".floatval($_POST['minNorth'])." AND  southlim < ".floatval($_POST['maxNorth'])." AND  eastlim > ".floatval($_POST['minEast'])." AND westlim < ".floatval($_POST['maxEast']);
+//$whereclause= "northlim  >  55  AND  southlim < 58 AND  eastlim >-5  AND westlim < 0";
 $sql= "SELECT polynum,country,base, point, coords FROM polyref INNER JOIN polypoints ON polyref.polynum=polypoints.polygon WHERE $whereclause ORDER BY polynum,point";
 $polygons=$mysqli->query($sql);
 $counter=0;
