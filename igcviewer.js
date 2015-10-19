@@ -65,6 +65,9 @@ function showAirspace(mapControl)  {
                        }
     },"json");
     }
+    else {
+        mapControl.zapAirspace();
+    }
 }
 
     function showDeclaration(task)  {
@@ -211,12 +214,13 @@ function showAirspace(mapControl)  {
                 $('#task').hide();
                 }
         // Display the headers.
-        var headerTable = $('#headerInfo tbody');
+        var headerBlock = $('#headers');
+        headerBlock.html('');
        //Delay display of date till we get the timezone
         var headerName;
         var headerIndex;
-        for (headerIndex = 0; headerIndex < igcFile.headers.length; headerIndex++) {
-           headerTable.append(
+      for (headerIndex = 0; headerIndex < igcFile.headers.length; headerIndex++) {
+           headerBlock.append(
                 $('<tr></tr>').append($('<th></th>').text(igcFile.headers[headerIndex].name))
                               .append($('<td></td>').text(igcFile.headers[headerIndex].value))
             );

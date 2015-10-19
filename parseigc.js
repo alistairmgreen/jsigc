@@ -277,11 +277,6 @@ var takeoff= taskpoints.shift();
 var landing= taskpoints.pop();
 model.task.takeoff=takeoff.slice(18);
 model.task.landing=landing.slice(18);
-}
-else {
-    model.task.takeoff= "";
-    model.task.landing= "";
-}
 //Extract remaining declaration information
 var turnpoint=parseTask(taskpoints[0]);
 model.task.names.push(turnpoint.name);
@@ -295,6 +290,12 @@ for(i=1; i < (taskpoints.length -1); i++) {
    model.task.coordinates.push(turnpoint.latLong);
     }
 }
+}
+else {
+    model.task.takeoff= "";
+    model.task.landing= "";
+}
+
 
     return model;
 }
