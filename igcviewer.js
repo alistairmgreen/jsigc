@@ -10,6 +10,7 @@
             offset: 0,
             dst: false
         };
+var flightarea= null;
 
 //get timezone data from timezonedb.  Via php to avoid cross-domain data request from the browser
 //Timezone dependent processes run  on file load are here as request is asynchronous
@@ -48,14 +49,13 @@ function gettimezone(igcFile,mapControl)  {
    
 function showAirspace(mapControl)  {
     var clip=Number( $("#airclip").val());
-    var showbounds=mapControl.getShowbounds();
     if(clip!==0) {
     $.post("getairspace.php",
            {
-               maxNorth: showbounds['north'],
-               minNorth: showbounds['south'],
-               maxEast:showbounds['east'] ,
-                minEast:showbounds['west']
+               maxNorth: flightarea['north'],
+               minNorth: flightarea['south'],
+               maxEast: flightarea['east'] ,
+                minEast:flightarea['west']
         } ,
               function(data,status) {
               if(status==="success")  {
@@ -224,13 +224,12 @@ function showAirspace(mapControl)  {
         // Reveal the map and graph. We have to do this before
         // setting the zoom level of the map or plotting the graph.
         $('#igcFileDisplay').show();
-        
         mapControl.addTrack(igcFile.latLong);
         //Barogram is now plotted on "complete" event of timezone query
         gettimezone(igcFile,mapControl);
+        flightarea=mapControl.getShowbounds();
         showAirspace(mapControl);
         $('#timeSlider').prop('max', igcFile.recordTime.length - 1);
-        //updateTimeline(0, mapControl);
     }
     
     function toDegMins(degreevalue) {
