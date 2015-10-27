@@ -155,40 +155,6 @@ function parseIGC(igcFile) {
             };
         }
     }
-
-    function parseTask(taskRecord) {
-        var taskRegex = /^C([\d]{7}[NS][\d]{8}[EW])(.*)/;
-        var taskMatch = taskRecord.match(taskRegex);
-        var degreeSymbol = '\u00B0';
-
-        if (taskMatch) {
-            var name = taskMatch[2];
-
-            // If the turnpoint name is blank, use the latitude and longitude.
-            if (name.trim().length === 0) {
-                name = taskRecord.substring(1, 3) +
-                degreeSymbol +
-                taskRecord.substring(3, 5) +
-                '.' +
-                taskRecord.substring(5, 8) +
-                "' " +
-                taskRecord.charAt(8) +
-                ', ' +
-                taskRecord.substring(9, 12) +
-                degreeSymbol +
-                taskRecord.substring(12, 14) +
-                '.' +
-                taskRecord.substring(14, 17) +
-                "' " +
-                taskRecord.charAt(17);
-            }
-
-            return {
-                latLong: parseLatLong(taskMatch[1]),
-                name: name
-            };
-        }
-    }
     
     // ---- Start of IGC parser code ----
     
@@ -207,14 +173,9 @@ function parseIGC(igcFile) {
         latLong: [],
         pressureAltitude: [],
         gpsAltitude: [],
-        task: {
-            coordinates: [],
-            names: [],
-            takeoff: "",
-            landing: ""
-        }
+        taskpoints: []
     };
-    var taskpoints=[];
+
     // The first line should begin with 'A' followed by
     // a 3-character manufacturer Id and a 3-character serial number.
     if (!(/^A[\w]{6}/).test(igcLines[0])) {
@@ -240,6 +201,7 @@ function parseIGC(igcFile) {
     var currentLine;
     var turnpoint; // for task declaration lines
     var headerData;
+
     for (lineIndex = 0; lineIndex < igcLines.length; lineIndex++) {
         currentLine = igcLines[lineIndex];
         recordType = currentLine.charAt(0);
@@ -255,9 +217,10 @@ function parseIGC(igcFile) {
                 break;
 
             case 'C': // Task declaration
-                var taskRegex = /^C([\d]{7}[NS][\d]{8}[EW])(.*)/;
+                var taskRegex = /^C[\d]{7}[NS][\d]{8}[EW].*/;
                if( taskRegex.test(currentLine)) {
-                   taskpoints.push(currentLine.trim());
+                   //drop the "C" and push raw data to model.  Will parse later if needed using same functions as for user entered tasks
+                   model.taskpoints.push(currentLine.substring(1).trim());
                     }
                 break;
 
@@ -269,33 +232,5 @@ function parseIGC(igcFile) {
                 break;
         }
     }
-
-//No need to use regex match at this stage as we've already filtered
-// Extract takeoff and landing  names from  declaration
-if(taskpoints.length > 0)  {
-var takeoff= taskpoints.shift();
-var landing= taskpoints.pop();
-model.task.takeoff=takeoff.slice(18);
-model.task.landing=landing.slice(18);
-//Extract remaining declaration information
-var turnpoint=parseTask(taskpoints[0]);
-model.task.names.push(turnpoint.name);
-model.task.coordinates.push(turnpoint.latLong);
-var i;
-for(i=1; i < (taskpoints.length -1); i++) {
-    //comparing strings not floats
-    if(taskpoints[i].slice(0,17) !== taskpoints[i-1].slice(0,17)) {
-   turnpoint=parseTask(taskpoints[i]);
-   model.task.names.push(turnpoint.name);
-   model.task.coordinates.push(turnpoint.latLong);
-    }
-}
-}
-else {
-    model.task.takeoff= "";
-    model.task.landing= "";
-}
-
-
     return model;
 }

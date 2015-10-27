@@ -12,6 +12,187 @@
         };
 var flightarea= null;
 
+var task= null;
+
+function showTask()  {
+    var i;
+    $('#taskinfo').html("");
+    for(i=0;i < task.labels.length; i++) {
+        $('#taskinfo').append('<tr><th>' + task.labels[i]  +':</th><td>' +task.names[i]  + ':</td><td>' + task.descriptions[i] + '</td></tr>');
+    }
+      $('#tasklength').text("Task length: " +  task.distance.toFixed(1) + " Km");
+      $('#task').show();
+}
+    
+function pointDescription(coords) {
+    var latdegrees= Math.abs(coords['lat']);
+    var latdegreepart=Math.floor(latdegrees);
+    var latminutepart=60*( latdegrees-latdegreepart);
+   var latdir= (coords['lat']  >  0)?"N":"S";
+   var lngdegrees= Math.abs(coords['lng']);
+    var lngdegreepart=Math.floor(lngdegrees);
+    var lngminutepart=60*( lngdegrees-lngdegreepart);
+   var lngdir= (coords['lng']  >  0)?"E":"W";
+   
+    var retstr= latdegreepart.toString() + "&deg;" + latminutepart.toFixed(3) + "&prime;" + latdir + " " + lngdegreepart.toString() + "&deg;" + lngminutepart.toFixed(3) + "&prime;" + lngdir;
+    return retstr;
+}
+
+function clearTask(mapControl) {
+    $('#taskinfo').html("");
+    $('#tasklength').html("");
+    mapControl.zapTask();
+    $('#task').hide();
+    task= null;
+}
+
+//Get display information associated with task
+function maketask(points) {
+    var i;
+    var j=1;
+    var distance=0;
+    var leglength;
+    var names=[];
+    var labels = [];
+    var coords= [];
+    var descriptions= [];
+   names[0]=points.name[0];
+    labels[0]= "Start";
+    coords[0]=points.coords[0];
+   descriptions[0]=pointDescription(points.coords[0]);
+   for(i=1;i < points.coords.length;i++) {
+        leglength=points.coords[i].distanceTo(points.coords[i-1]);
+        //eliminate situation when two successive points are identical (produces a divide by zero error on display. 
+        //To allow for FP rounding, within 30 metres is considered identical.
+        if(leglength >30) {
+            names[j]= points.name[i];
+            coords[j]= points.coords[i];
+           descriptions[j]=pointDescription(points.coords[i]);
+           labels[j]= "TP" + j;
+            distance += leglength;
+            j++;
+    }
+}
+    labels[labels.length-1]= "Finish";
+    distance= distance/1000;
+    var retval = {
+                                names: names,
+                                labels: labels,
+                                coords: coords,
+                                descriptions: descriptions,
+                                distance: distance
+    };
+    //Must be at least two points more than 30 metres apart
+    if(names.length > 1) {
+         return retval;
+    }
+    else {
+        return null;
+    }
+}
+
+function getPoint(instr) {
+    var latitude;
+    var longitude;
+    var pointname="Not named";
+    var matchref;
+    var statusmessage= "Fail";
+    var count;
+      var pointregex = [
+                                       /^([A-Za-z]{2}[A-Za-z0-9]{1})$/,
+                                   /^([\d]{2})([\d]{2})([\d]{3})([NnSs])([\d]{3})([\d]{2})([\d]{3})([EeWw])([\w\s]*)$/,
+                                  /^([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\s]*([NnSs])[\W]*([0-9]{1,3}):([0-9]{1,2}):([0-9]{1,2})[\s]*([EeWw])$/
+];
+for(count=0;count < pointregex.length;count++) {
+        matchref=instr.match(pointregex[count]);
+        if(matchref) {
+            switch(count)  {
+        case 0:
+           $.ajax({
+                   url: "findtp.php",
+                   data:  {trigraph: matchref[0]},
+                      timeout: 3000,
+                      method: "POST",
+                      dataType: "json",
+                      async: false,
+                     success:   function(data) {
+                        pointname=data.tpname;
+                        if(pointname !=="Not found") {
+                          latitude=data.latitude;
+                           longitude=data.longitude;
+                           statusmessage="OK";
+                        }
+                     }
+              });  
+        break;
+        case 1:
+                 latitude= parseFloat(matchref[1]) + parseFloat(matchref[2])/60 +parseFloat(matchref[3])/60000;
+                if(matchref[4].toUpperCase()==="S") {
+                  latitude=-latitude;  
+                    }
+                 longitude= parseFloat(matchref[5]) + parseFloat(matchref[6])/60 +parseFloat(matchref[7])/60000;
+                if(matchref[8].toUpperCase()==="W") {
+                  longitude=-longitude;  
+                }
+                if(matchref[9].length > 0) {
+                    pointname= matchref[9];
+                }
+                 statusmessage="OK";
+
+            break;
+        case 2:
+            latitude= parseFloat(matchref[1]) + parseFloat(matchref[2])/60 +parseFloat(matchref[3])/3600;
+                if(matchref[4].toUpperCase()==="S") {
+                  latitude=-latitude;  
+                    }
+                 longitude= parseFloat(matchref[5]) + parseFloat(matchref[6])/60 +parseFloat(matchref[7])/3600;
+                if(matchref[8].toUpperCase()==="W") {
+                  longitude=-longitude;  
+                }
+                statusmessage="OK";
+            break;
+         }
+        }
+    }
+    
+     return   {
+       message: statusmessage,
+        coords:  L.latLng(latitude,longitude),
+       name:  pointname
+    };
+    
+}
+
+function parseUserTask() {
+    var input;
+    var pointdata;
+    var success = true;
+    var taskdata =   {
+                                    coords: [],
+                                    name:   []
+                                     }
+     $("#requestdata :input[type=text]").each(function() {
+         input = $(this).val().replace(/ /g,'');
+       if(input.length > 0) {
+          pointdata= getPoint(input);
+          if(pointdata.message==="OK") {
+              taskdata.coords.push(pointdata.coords);
+              taskdata.name.push(pointdata.name);
+          }
+          else {
+             success=false;
+            alert("\""+input +"\"" + " not recognised-" + " ignoring entry");
+         }
+       }
+      });
+        if(success) {
+           task= maketask(taskdata);
+        }
+       else {
+           task=null;
+       }
+}
+
 //get timezone data from timezonedb.  Via php to avoid cross-domain data request from the browser
 //Timezone dependent processes run  on file load are here as request is asynchronous
 //If the request fails or times out, silently reverts to default (UTC)
@@ -69,72 +250,7 @@ function showAirspace(mapControl)  {
         mapControl.zapAirspace();
     }
 }
-
-    function showDeclaration(task)  {
-        $('#task').show();
-        var taskList = $('#task ul').first().html('');
-         var j;
-         var pointlist=[];
-         var tasklength=0;
-         var canmeasure= true;
-         if(task.takeoff.length > 0) {
-         taskList.append($('<li> </li>').text("Takeoff: : " + task.takeoff)); 
-           }
-         for (j =0; j < task.names.length; j++) {
-         pointlist.push( L.latLng(task.coordinates[j][0], task.coordinates[j][1]));
-         switch(j)  {
-                 case 0:
-                     taskList.append($('<li> </li>').text("Start: " + task.names[j]));
-                     break;
-                     case ( task.names.length-1):
-                          taskList.append($('<li> </li>').text("Finish: " + task.names[j]));
-                          break;
-                      default:
-                            taskList.append($('<li></li>').text("TP" + (j).toString() + ": " + task.names[j]));
-                   }
-               }
-               if(task.landing.length > 0) {
-                    taskList.append($('<li> </li>').text("Landing: : " + task.landing)); 
-              }
-               for(j = 0; j < task.coordinates.length-1 ; j ++)  {
-                    if ((task.coordinates[j][0] !==0) && (task.coordinates[j+1][0] !==0))  {
-                            tasklength+=pointlist[j].distanceTo(pointlist[j+1]);
-                         }
-                   else  {
-                         canmeasure=false;
-                     }
-                }
-                 if (canmeasure)  {
-                         $('#tasklength').text("Task Length: " + (tasklength/1000).toFixed(1) + " Km");
-                }
-                else {
-                         $('#tasklength').text("");
-                 }                       
-        }    
     
-    function positionDisplay(position)  {
-        function toDegMins(degreevalue) {
-            var wholedegrees= Math.floor(degreevalue);
-            var minutevalue = (60*(degreevalue-wholedegrees)).toFixed(3);
-            return wholedegrees + '\u00B0\u00A0'  + minutevalue  + '\u00B4';
-        }
-    
-        var positionLatitude= toDegMins(Math.abs(position[0]));
-        var positionLongitude=toDegMins(Math.abs(position[1]));
-        if(position[0]  >  0)  {
-            positionLatitude += "N";
-        }
-        else  {
-            positionLatitude += "S";
-        }
-        if(position[1]  >  0)  {
-            positionLongitude += "E";
-        }
-        else  {
-            positionLongitude += "W";
-        }
-        return positionLatitude + ",   " + positionLongitude;
-    }
     
     function pad(n) {
         return (n < 10) ? ("0" + n.toString()) : n.toString();
@@ -186,11 +302,12 @@ function showAirspace(mapControl)  {
     
     function updateTimeline (timeIndex, mapControl) {
         var currentPosition = igcFile.latLong[timeIndex];
-        var positionText=positionDisplay(currentPosition);
+        //var positionText=positionDisplay(currentPosition);
+        var positionText=pointDescription(L.latLng(currentPosition));
         var unitName = $('#altitudeUnits').val();
         //add in offset from UTC then convert back to UTC to get correct time in timezone!
         var adjustedTime= new Date(igcFile.recordTime[timeIndex].getTime() + timezone.offset);
-       $('#timePositionDisplay').text(adjustedTime.getUTCHours() + ':' +pad(adjustedTime.getUTCMinutes()) + ':' + pad(adjustedTime.getSeconds()) +  " " + timezone.zoneabbr + '; '+ 
+       $('#timePositionDisplay').html(adjustedTime.getUTCHours() + ':' +pad(adjustedTime.getUTCMinutes()) + ':' + pad(adjustedTime.getSeconds()) +  " " + timezone.zoneabbr + '; '+ 
             (igcFile.pressureAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
             unitName + ' (barometric) / ' +
             (igcFile.gpsAltitude[timeIndex] * altitudeConversionFactor).toFixed(0) + ' ' +
@@ -205,14 +322,36 @@ function showAirspace(mapControl)  {
     }
     
     function displayIgc(mapControl) {
-        //Display task if there is anything to display
-        if ((igcFile.task.coordinates.length > 1) && (igcFile.task.coordinates[0][0]!==0))    {
-               showDeclaration(igcFile.task);
-                mapControl.addTask(igcFile.task.coordinates, igcFile.task.names);
-                }
-        else {
-                $('#task').hide();
-                }
+        
+        clearTask(mapControl);
+        //check for user entered task- must be entry in start and finish
+         if($('#start').val().trim() && $('#finish').val().trim())  {
+              parseUserTask();
+         }
+         //if user defined task is empty or malformed
+         if(task===null)  {
+            if(igcFile.taskpoints.length > 4) {
+           var i;
+            var pointdata;
+            var taskdata= {
+                   coords: [],
+                    name: []
+            };
+            //For now, ignore takeoff and landing
+             for(i=1;   i  < igcFile.taskpoints.length -1; i++) {
+                 pointdata= getPoint( igcFile.taskpoints[i]);
+                  taskdata.coords.push(pointdata.coords);
+                  taskdata.name.push(pointdata.name);
+               }
+                task= maketask(taskdata);
+           }
+         }
+         
+      if(task!==null) {
+            showTask();
+            mapControl.addTask(task.coords,task.labels);
+      }
+         
         // Display the headers.
         var headerBlock = $('#headers');
         headerBlock.html('');
@@ -235,32 +374,7 @@ function showAirspace(mapControl)  {
         showAirspace(mapControl);
         $('#timeSlider').prop('max', igcFile.recordTime.length - 1);
     }
-    
-    function toDegMins(degreevalue) {
-        var wholedegrees= Math.floor(degreevalue);
-        var minutevalue = (60*(degreevalue-wholedegrees)).toFixed(3);
-        return wholedegrees +"\xB0 "  + minutevalue  + "\xB4";
-    }
-    
-    function positionDisplay(position)  {
-       // var positionLatitude=(Math.abs(position[0])).toFixed(3) + "\xB0";
-        var positionLatitude= toDegMins(Math.abs(position[0]));
-        var positionLongitude=toDegMins(Math.abs(position[1]));
-        if(position[0]  >  0)  {
-            positionLatitude += "N";
-        }
-        else  {
-            positionLatitude += "S";
-        }
-        if(position[1]  >  0)  {
-            positionLongitude += "E";
-        }
-        else  {
-            positionLongitude += "W";
-        }
-        return positionLatitude + ",   " + positionLongitude;
-    }
-    
+        
     function pad(n) {
     return (n < 10) ? ("0" + n) : n;
 }
@@ -347,6 +461,20 @@ function showAirspace(mapControl)  {
         $('#airclip').change(function() {
              showAirspace(mapControl);
          });  
+  
+         $('#clearTask').click(function() {
+            $("#requestdata :input[type=text]").each(function() {
+             $(this).val("");
+    });
+           clearTask(mapControl);
+    });
+    
+        $('#enterTask').click(function() {
+       clearTask(mapControl);
+       parseUserTask();
+       showTask();
+       mapControl.addTask(task.coords,task.labels);
+    });
         
          $('#barogram').on('plotclick', function (event, pos, item) {
              console.log('plot click');

@@ -10,10 +10,10 @@ function createMapControl(elementName) {
         // Formula from: http://www.movable-type.co.uk/scripts/latlong.html
         // Start by converting to radians.
         var degToRad = Math.PI / 180.0;
-        var lat1 = pt1[0] * degToRad;
-        var lon1 = pt1[1] * degToRad;
-        var lat2 = pt2[0] * degToRad;
-        var lon2 = pt2[1] * degToRad;
+        var lat1 = pt1['lat'] * degToRad;
+        var lon1 = pt1['lng'] * degToRad;
+        var lat2 = pt2['lat'] * degToRad;
+        var lon2 = pt2['lng'] * degToRad;
 
         var y = Math.sin(lon2 - lon1) * Math.cos(lat2);
         var x = Math.cos(lat1) * Math.sin(lat2) -
@@ -27,17 +27,16 @@ function createMapControl(elementName) {
     function getLine(pt1, pt2, linerad, drawOptions) {
         //returns line through pt1, at right angles to line between pt1 and pt2, length linerad.
         //Use Pythogoras- accurate enough on this scale
-        var latdiff = pt2[0] - pt1[0];
-        //need radians for cosine function
-        var northmean = (pt1[0] + pt2[0]) * Math.PI / 360;
-        var startrads = pt1[0] * Math.PI / 180;
-        var longdiff = (pt1[1] - pt2[1]) * Math.cos(northmean);
+        var latdiff = pt2['lat'] - pt1['lat'];
+        var northmean = (pt1['lat'] + pt2['lat']) * Math.PI / 360;
+        var startrads = pt1['lat'] * Math.PI / 180;
+        var longdiff = (pt1['lng'] - pt2['lng']) * Math.cos(northmean);
         var hypotenuse = Math.sqrt(latdiff * latdiff + longdiff * longdiff);
         //assume earth is a sphere circumference 40030 Km 
         var latdelta = linerad * longdiff / hypotenuse / 111.1949269;
         var longdelta = linerad * latdiff / hypotenuse / 111.1949269 / Math.cos(startrads);
-        var linestart =  L.latLng(pt1[0] - latdelta, pt1[1] - longdelta);
-        var lineend =  L.latLng(pt1[0] + latdelta, longdelta + pt1[1]);
+        var linestart =  L.latLng(pt1['lat'] - latdelta, pt1['lng'] - longdelta);
+        var lineend =  L.latLng(pt1['lat'] + latdelta, longdelta + pt1['lng']);
         var polylinePoints = [linestart, lineend];
         var polylineOptions = {
             color: 'green',
@@ -177,8 +176,14 @@ for(i=0 ; i < airdata.polygons.length;i++) {
             map.fitBounds(trackLine.getBounds());
         },
         
+       zapTask: function()  {
+            if (mapLayers.task) {
+                map.removeLayer(mapLayers.task);
+                layersControl.removeLayer(mapLayers.task);
+            }
+        },
+        
        addTask: function (coordinates, names) {
-            //Clearer if we don't show track to and from start line and finish line, as we are going to show lines
             var taskLayers = [L.polyline(coordinates, { color: 'blue' })];
             var lineDrawOptions = {
                 fillColor: 'green',
@@ -202,22 +207,22 @@ for(i=0 ; i < airdata.polygons.length;i++) {
             var tpSectorAngle = 90;
             var j;
             for (j = 0; j < coordinates.length; j++) {
-                taskLayers.push(L.marker(coordinates[j]).bindPopup(names[j]));
+               taskLayers.push(L.marker(coordinates[j]).bindPopup(names[j]));
                 switch (j) {
                     case 0:
-                        var startline = getLine(coordinates[0], coordinates[1], startLineRadius, lineDrawOptions);
+                     var startline = getLine(coordinates[0], coordinates[1], startLineRadius, lineDrawOptions);
                         taskLayers.push(startline);
                         break;
                     case (coordinates.length - 1):
-                       var finishline = getLine(coordinates[j], coordinates[j - 1], finishLineRadius, lineDrawOptions);
+                      var finishline = getLine(coordinates[j], coordinates[j - 1], finishLineRadius, lineDrawOptions);
                        taskLayers.push(finishline);
                         break;
-                    default:
-                        taskLayers.push(L.circle(coordinates[j], tpCircleRadius, sectorDrawOptions));
+                       default:
+                       taskLayers.push(L.circle(coordinates[j], tpCircleRadius, sectorDrawOptions));
                         var tpsector = getTpSector(coordinates[j], coordinates[j - 1], coordinates[j + 1], tpSectorRadius, tpSectorAngle,sectorDrawOptions);
-                        taskLayers.push(tpsector);
-                }
-            }
+                       taskLayers.push(tpsector);
+                  }
+              }
             mapLayers.task = L.layerGroup(taskLayers).addTo(map);
             layersControl.addOverlay(mapLayers.task, 'Task');
         },

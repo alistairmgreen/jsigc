@@ -22,37 +22,29 @@
     <script src="igcviewer.js"></script>
 </head>
 <body>
+ <div id='titlediv'>
     <h1>JavaScript IGC Viewer</h1>
 
     <p>
-        A free browser-based tool for viewing GPS tracks and barograph traces from gliding loggers.
-        The files must be in the International Gliding Commission (IGC) format.
+        A free browser-based tool for viewing IGC format  tracks and barograph traces from gliding loggers.
     </p>
-
-    <p>
-        Example files can be found on the <a href="http://www.bgaladder.co.uk/Enquiry.asp">
-            British
-            Gliding Association Ladder
-        </a>. Click on the &quot;Task&quot; column to open the Flight Details
-        window and download the logger file from there.
-    </p>
-
     <p> &copy; 2015 Alistair Malcolm Green and Richard Brisbourne </p>
-
+</div>
     <noscript>
         <p>
             <strong>Please enable JavaScript to use this application.</strong>
         </p>
     </noscript>
+    <div class="halfwidth">
+      <h2> Preferences </h2>
     <p>
-    <b>Warning:</b> Unless the "no airspace" option is selected below, outlines of controlled airspace  will be displayed on the map provided we have data for the area.<br>
-    This information may not be accurate,  current or complete and is not valid for navigation or flight planning.   Always consult the official publications for current and correct information. 
+    <b>Warning:</b> Unless the "no airspace" option is selected below, outlines of controlled airspace  will be displayed on the map provided we have data for the area.</p>
+    <p>This information may not be accurate,  current or complete and is not valid for navigation or flight planning.   Always consult the official publications for current and correct information. 
     </p>
 
     <div id="errorMessage">
     </div>
 
-    <h2> Preferences </h2>
     <p>
         <label for="altitudeUnits">Altitude units:</label>
         <select id="altitudeUnits" autocomplete="off">
@@ -71,31 +63,41 @@
         </select>
         feet
     </p>
-    <hr>
-    <p>
+     <p>
         <label for="fileControl">Select a file to view:</label>
         <input id="fileControl" type="file" />
     </p>
 
-    <div id="task">
-            <h2> Task </h2>
-            <ul>
-            </ul>
-            <span id="tasklength"></span>
-        </div>
-    
-    <div id="igcFileDisplay">
-
-        <h2> Flight Information </h2>
+    <h2> Flight Information </h2>
         <table id="headerInfo">
-            <tbody>
+                 <tbody>
              <tr><th>Date:</th><td id='datecell'></td></th>
              </tbody>
             <tbody id="headers">
             </tbody>
         </table>
+    </div>
+    <div class="halfwidth" id="declaration">
+    <h2>Task- user entry </h2>
+    <p>Fill in this section if the task declaration in the IGC file is absent or incorrect.  It will override any declaration in the file.  To use the declaration in the IGC file leave it blank.</p>
+    <p>You may enter BGA trigraphs, or Lat/Long in either 'dd:mm.mmm&nbsp;N&nbsp;ddd:mm.mmm&nbsp;W' or 'dd:mm:ss&nbsp;N&nbsp;ddd:mm:ss&nbsp;W' format.  Start and finish must be filled in, blank turning points will be ignored.</p>
+    <p id="requestdata">
+    Start: <input type="text" id="start"/>   TP1:  <input type="text"/> TP2:  <input type="text"/> <br>
+    TP3:  <input type="text"/> TP4:  <input type="text"/>   Finish: <input type="text" id="finish"/><button id="enterTask">Enter</button> <button id="clearTask">Clear</button></p>
+    
 
-        <div id="mapWrapper">
+<div id="task">
+            <h2> Task </h2>
+           <table>
+           <tbody id="taskinfo">
+           </tbody>
+           </table>
+            <p id="tasklength"></p>
+        </div> 
+</div>   
+    <div id="igcFileDisplay" >    
+
+        <div id="mapWrapper" class="halfwidth">
             <div id="map"></div>
             <div id="slider">
             <label for="timeSlider">Time:</label>
@@ -105,7 +107,7 @@
             <p id="timePositionDisplay"></p>
         </div>
         </div>
-        <div id="barogram"></div>
+        <div id="barogram" class="halfwidth"></div>
     </div>
 
     <h2> Credits </h2>
