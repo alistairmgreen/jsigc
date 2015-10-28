@@ -100,7 +100,7 @@ function getPoint(instr) {
     var count;
       var pointregex = [
                                        /^([A-Za-z]{2}[A-Za-z0-9]{1})$/,
-                                   /^([\d]{2})([\d]{2})([\d]{3})([NnSs])([\d]{3})([\d]{2})([\d]{3})([EeWw])([\w\s]*)$/,
+                                   /^([\d]{2})([\d]{2})([\d]{3})([NnSs])([\d]{3})([\d]{2})([\d]{3})([EeWw])(.*)$/,
                                   /^([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\s]*([NnSs])[\W]*([0-9]{1,3}):([0-9]{1,2}):([0-9]{1,2})[\s]*([EeWw])$/
 ];
 for(count=0;count < pointregex.length;count++) {
@@ -108,6 +108,7 @@ for(count=0;count < pointregex.length;count++) {
         if(matchref) {
             switch(count)  {
         case 0:
+            //BGA point
            $.ajax({
                    url: "findtp.php",
                    data:  {trigraph: matchref[0]},
@@ -126,6 +127,7 @@ for(count=0;count < pointregex.length;count++) {
               });  
         break;
         case 1:
+              //format in IGC file
                  latitude= parseFloat(matchref[1]) + parseFloat(matchref[2])/60 +parseFloat(matchref[3])/60000;
                 if(matchref[4].toUpperCase()==="S") {
                   latitude=-latitude;  
@@ -193,6 +195,13 @@ function parseUserTask() {
        }
 }
 
+function displaydate(timestamp) {
+    var daynames= ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    var monthnames=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    
+    return daynames[timestamp.getUTCDay()] +" "+ timestamp.getUTCDate() + " " +monthnames[timestamp.getUTCMonth()] + " " + timestamp.getUTCFullYear();
+}
+
 //get timezone data from timezonedb.  Via php to avoid cross-domain data request from the browser
 //Timezone dependent processes run  on file load are here as request is asynchronous
 //If the request fails or times out, silently reverts to default (UTC)
@@ -221,7 +230,7 @@ function gettimezone(igcFile,mapControl)  {
                         complete: function() {
                         //Local date may not be the same as UTC date
                         var localdate=new Date(flightdate.getTime() + timezone.offset);
-                        $('#datecell').text(localdate.toDateString());
+                        $('#datecell').text(displaydate(localdate));
                         barogramPlot = plotBarogram(igcFile);
                         updateTimeline(0, mapControl);
                         }
@@ -340,15 +349,19 @@ function showAirspace(mapControl)  {
             //For now, ignore takeoff and landing
              for(i=1;   i  < igcFile.taskpoints.length -1; i++) {
                  pointdata= getPoint( igcFile.taskpoints[i]);
-                  taskdata.coords.push(pointdata.coords);
-                  taskdata.name.push(pointdata.name);
+                 if(pointdata.message==="OK") {
+                     taskdata.coords.push(pointdata.coords);
+                     taskdata.name.push(pointdata.name);
+                 }
                }
-                task= maketask(taskdata);
+               if(taskdata.name.length > 1) {
+                    task= maketask(taskdata);
+               }
            }
          }
          
       if(task!==null) {
-            showTask();
+           showTask();
             mapControl.addTask(task.coords,task.labels);
       }
          
@@ -364,6 +377,7 @@ function showAirspace(mapControl)  {
                               .append($('<td></td>').text(igcFile.headers[headerIndex].value))
             );
         }
+        $('#flightInfo').show();
         // Reveal the map and graph. We have to do this before
         // setting the zoom level of the map or plotting the graph.
         $('#igcFileDisplay').show();
