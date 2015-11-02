@@ -67,9 +67,72 @@ function createMapControl(elementName) {
         return L.circle(centrept, sectorRadius, sectorOptions);
     }
 
+//Airspace control functions are now private to facilitate calling from the map move event
+
+ function zapAirspace()  {
+                if (mapLayers.airspace) {
+                map.removeLayer(mapLayers.airspace);
+            }
+ }
+
+    function showAirspace() {
+       var mapbounds= map.getBounds();
+
+       //Don't show airspace if the map is zoomed out so north/south latitude distance is over 10 degrees
+       //roughly 1000 Km. Too much data in the layer slows everything down.
+       //Values here are a tradeoff between window size,  smooth factor and responsiveness
+       if ((airClip >0) && ((mapbounds.getNorth()- mapbounds.getSouth()) < 10)) {
+       $.post("getairspace.php",
+           {
+               maxNorth: mapbounds.getNorth(),
+               minNorth: mapbounds.getSouth(),
+               maxEast: mapbounds.getEast() ,
+                minEast: mapbounds.getWest()
+        } ,
+              function(data,status) {
+              if(status==="success")  {
+                     $('#airspace_src').html(data.country);
+                     $('#airspace_info').show();
+                     var i;
+                    var polyPoints;
+                     var suacircle;
+                     var airStyle = {
+                    "color": "black",
+                    "weight": 1,
+                    "opacity": 0.20,
+                    "fillColor": "red",
+                    "smoothFactor": 1
+                    };
+                var suafeatures=[];
+                zapAirspace();
+
+            for(i=0 ; i < data.polygons.length;i++) {
+                if(data.polygons[i].base < airClip)  {
+                  polyPoints=data.polygons[i].coords;
+                    suafeatures.push(L.polygon(polyPoints,airStyle));
+                }
+            }
+            for(i=0; i < data.circles.length; i++) {
+                if (data.circles[i].base <  airClip)  {
+                    suafeatures.push(L.circle(data.circles[i].centre, 1000*data.circles[i].radius, airStyle));
+                    }
+                }
+                    mapLayers.airspace = L.layerGroup(suafeatures).addTo(map); 
+                  // layersControl.addOverlay(mapLayers.airspace, 'Airspace');
+                       }
+    },"json");
+        }
+    else  {
+        zapAirspace();
+    }
+    }
+
     // End of private methods
 
     var map = L.map(elementName);
+
+    //Airspace clip altitude now a property of this object
+   var airClip= 0;
 
     var mapQuestAttribution = ' | Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">';
     var mapLayers = {
@@ -93,7 +156,6 @@ function createMapControl(elementName) {
 
     mapLayers.openStreetMap.addTo(map);
     layersControl.addTo(map);
-
     var trackLatLong = [];
     var timePositionMarker;
     L.AwesomeMarkers.Icon.prototype.options.prefix = 'fa';
@@ -117,55 +179,9 @@ function createMapControl(elementName) {
             }
         },
 
- zapAirspace: function()  {
-                if (mapLayers.airspace) {
-                map.removeLayer(mapLayers.airspace);
-                layersControl.removeLayer(mapLayers.airspace);
-            }
- },
-
- getShowbounds: function()  {
-     var limitsnow=map.getBounds();
-     var showlimits = [];
-     showlimits['north']= limitsnow.getNorth() + 0.5;
-     showlimits['south']= limitsnow.getSouth() - 0.5;
-     var longoffset=  0.5/Math.cos(Math.PI*(showlimits['south'] + showlimits['north'])/360);
-    showlimits['east']=limitsnow.getEast() + longoffset;
-    showlimits['west']= limitsnow.getWest() - longoffset;
-    return showlimits;
- },
- 
- addAirspace: function(airdata,clip) {
-      var i;
-var polyPoints;
-var suacircle;
-var airStyle = {
-    "color": "black",
-    "weight": 1,
-    "opacity": 0.20,
-    "fillColor": "red",
-    "smoothFactor": 0.1
-};
-var suafeatures=[];
-this.zapAirspace();
-for(i=0 ; i < airdata.polygons.length;i++) {
-       if(airdata.polygons[i].base < clip)  {
-                  polyPoints=airdata.polygons[i].coords;
-                suafeatures.push(L.polygon(polyPoints,airStyle));
-       }
- }
-  for(i=0; i < airdata.circles.length; i++) {
-     if (airdata.circles[i].base < clip)  {
-         suafeatures.push(L.circle(airdata.circles[i].centre, 1000*airdata.circles[i].radius, airStyle));
-     }
-     }
-         mapLayers.airspace = L.layerGroup(suafeatures).addTo(map); 
-         layersControl.addOverlay(mapLayers.airspace, 'Airspace');
-        },
-                     
         addTrack: function (latLong) {
             trackLatLong = latLong;
-            var trackLine = L.polyline(latLong, { color: 'red' });
+            var trackLine = L.polyline(latLong, { color: 'blue' ,weight: 4});
             timePositionMarker = L.marker(latLong[0], { icon: planeIcon });
             mapLayers.track = L.layerGroup([
                 trackLine,
@@ -182,9 +198,9 @@ for(i=0 ; i < airdata.polygons.length;i++) {
                 layersControl.removeLayer(mapLayers.task);
             }
         },
-        
+
        addTask: function (coordinates, names) {
-            var taskLayers = [L.polyline(coordinates, { color: 'blue' })];
+            var taskLayers = [L.polyline(coordinates, { color: 'gray' })];
             var lineDrawOptions = {
                 fillColor: 'green',
                 color: 'black',
@@ -227,6 +243,16 @@ for(i=0 ; i < airdata.polygons.length;i++) {
             layersControl.addOverlay(mapLayers.task, 'Task');
         },
         
+        updateAirspace:  function(clip) {
+            airClip=clip;
+           showAirspace();
+        },
+
+        //called to turn on airspace updating
+        activateEvents: function() {
+         map.on('moveend', showAirspace);
+        },
+
         setTimeMarker: function (timeIndex) {
             var markerLatLng = trackLatLong[timeIndex];
             if (markerLatLng) {

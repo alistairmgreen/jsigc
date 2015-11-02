@@ -236,30 +236,6 @@ function gettimezone(igcFile,mapControl)  {
                         }
 });
 }
-   
-function showAirspace(mapControl)  {
-    var clip=Number( $("#airclip").val());
-    if(clip!==0) {
-    $.post("getairspace.php",
-           {
-               maxNorth: flightarea['north'],
-               minNorth: flightarea['south'],
-               maxEast: flightarea['east'] ,
-                minEast:flightarea['west']
-        } ,
-              function(data,status) {
-              if(status==="success")  {
-                     $('#airspace_src').html(data.country);
-                     $('#airspace_info').show();
-                     mapControl.addAirspace(data,clip);
-                       }
-    },"json");
-    }
-    else {
-        mapControl.zapAirspace();
-    }
-}
-    
     
     function pad(n) {
         return (n < 10) ? ("0" + n.toString()) : n.toString();
@@ -364,7 +340,6 @@ function showAirspace(mapControl)  {
            showTask();
             mapControl.addTask(task.coords,task.labels);
       }
-         
         // Display the headers.
         var headerBlock = $('#headers');
         headerBlock.html('');
@@ -384,8 +359,10 @@ function showAirspace(mapControl)  {
         mapControl.addTrack(igcFile.latLong);
         //Barogram is now plotted on "complete" event of timezone query
         gettimezone(igcFile,mapControl);
-        flightarea=mapControl.getShowbounds();
-        showAirspace(mapControl);
+       // Set airspace clip altitude to selected value and show airspace for the current window
+        mapControl.updateAirspace(Number( $("#airclip").val()));
+        //Enable automatic update of the airspace layer as map moves or zooms
+        mapControl.activateEvents();
         $('#timeSlider').prop('max', igcFile.recordTime.length - 1);
     }
         
@@ -473,7 +450,7 @@ function showAirspace(mapControl)  {
         });
 
         $('#airclip').change(function() {
-             showAirspace(mapControl);
+             mapControl.updateAirspace(Number( $("#airclip").val()));
          });  
   
          $('#clearTask').click(function() {
