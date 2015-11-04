@@ -1,18 +1,25 @@
 <?php
 require_once("../db_inc.php");
 $mysqli=new mysqli($dbserver,$username,$password,$database);
-$trigraph=strtoupper(substr($_POST['trigraph'],0,3));
-$sql= "SELECT tpname,latitude,longitude FROM tpoints where trigraph='".$trigraph."'";
-$tpquery= $mysqli->query($sql);
-if($tpquery->num_rows > 0) {
-       $result= $tpquery->fetch_assoc();
+$postdata=strtoupper($_POST['postdata']);
+if(strlen($postdata)==3) {
+    $stmt = $mysqli->prepare("SELECT * FROM tpoints WHERE trigraph=?");
+}
+else  {
+     $stmt = $mysqli->prepare("SELECT * FROM worldpoints WHERE hexagraph=?");
+}
+ $stmt->bind_param("s", $postdata);
+ $stmt->execute();
+ $response=$stmt->get_result();
+if($response->num_rows > 0) {
+       $result= $response->fetch_assoc();
     }
 else {
     $result['tpname']= "Not found";
     $result['latitude']="";
     $result['longitude']="";
 }
-$tpquery->close();
+$stmt->close();
 $mysqli->close();
 echo json_encode($result,JSON_NUMERIC_CHECK);
 ?>

@@ -100,18 +100,21 @@ function getPoint(instr) {
     var count;
       var pointregex = [
                                        /^([A-Za-z]{2}[A-Za-z0-9]{1})$/,
+                                    /^([A-Za-z0-9]{6})$/,
                                    /^([\d]{2})([\d]{2})([\d]{3})([NnSs])([\d]{3})([\d]{2})([\d]{3})([EeWw])(.*)$/,
-                                  /^([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\s]*([NnSs])[\W]*([0-9]{1,3}):([0-9]{1,2}):([0-9]{1,2})[\s]*([EeWw])$/
+                                  /^([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\s]*([NnSs])[\W]*([0-9]{1,3}):([0-9]{1,2}):([0-9]{1,2})[\s]*([EeWw])$/,
+                                  /^(\d{1,2})[\s:](\d{1,2})\.(\d{1,3})\s*([NnSs])\s*(\d{1,3})[\s:](\d{1,2})\.(\d{1,3})\s*([EeWw])$/
 ];
 for(count=0;count < pointregex.length;count++) {
         matchref=instr.match(pointregex[count]);
         if(matchref) {
             switch(count)  {
         case 0:
-            //BGA point
+        case 1:
+            //BGA or Welt2000 point
            $.ajax({
                    url: "findtp.php",
-                   data:  {trigraph: matchref[0]},
+                   data:  {postdata: matchref[0]},
                       timeout: 3000,
                       method: "POST",
                       dataType: "json",
@@ -126,7 +129,7 @@ for(count=0;count < pointregex.length;count++) {
                      }
               });  
         break;
-        case 1:
+        case 2:
               //format in IGC file
                  latitude= parseFloat(matchref[1]) + parseFloat(matchref[2])/60 +parseFloat(matchref[3])/60000;
                 if(matchref[4].toUpperCase()==="S") {
@@ -142,12 +145,24 @@ for(count=0;count < pointregex.length;count++) {
                  statusmessage="OK";
 
             break;
-        case 2:
+        case 3:
+            //hh:mm:ss
             latitude= parseFloat(matchref[1]) + parseFloat(matchref[2])/60 +parseFloat(matchref[3])/3600;
                 if(matchref[4].toUpperCase()==="S") {
                   latitude=-latitude;  
                     }
                  longitude= parseFloat(matchref[5]) + parseFloat(matchref[6])/60 +parseFloat(matchref[7])/3600;
+                if(matchref[8].toUpperCase()==="W") {
+                  longitude=-longitude;  
+                }
+                statusmessage="OK";
+            break;
+        case 4:
+            latitude= parseFloat(matchref[1]) + parseFloat(matchref[2])/60 + parseFloat(matchref[3])/(60*(Math.pow(10,matchref[3].length)));
+                if(matchref[4].toUpperCase()==="S") {
+                  latitude=-latitude;  
+                    }
+                 longitude= parseFloat(matchref[5]) + parseFloat(matchref[6])/60 + parseFloat(matchref[7])/(60*(Math.pow(10,matchref[7].length)));
                 if(matchref[8].toUpperCase()==="W") {
                   longitude=-longitude;  
                 }
@@ -183,7 +198,7 @@ function parseUserTask() {
           }
           else {
              success=false;
-            alert("\""+input +"\"" + " not recognised-" + " ignoring entry");
+            alert("\""+$(this).val() +"\"" + " not recognised-" + " ignoring entry");
          }
        }
       });

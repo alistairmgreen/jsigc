@@ -198,9 +198,9 @@ function createMapControl(elementName) {
                 layersControl.removeLayer(mapLayers.task);
             }
         },
-
+        
        addTask: function (coordinates, names) {
-            var taskLayers = [L.polyline(coordinates, { color: 'gray' })];
+            var taskLayers = [L.polyline(coordinates, { color: 'dimgray' })];
             var lineDrawOptions = {
                 fillColor: 'green',
                 color: 'black',
