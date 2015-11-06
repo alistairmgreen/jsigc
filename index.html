@@ -47,13 +47,13 @@
 
     <p>
         <label for="altitudeUnits">Altitude units:</label>
-        <select id="altitudeUnits" autocomplete="off">
+        <select id="altitudeUnits" autocomplete="off" class="inbutton">
             <option value="feet">Feet</option>
             <option value="metres">Metres</option>
         </select>
         &nbsp;&nbsp; 
         <label for="airclip">Clip airspace above:</label>
-        <select id="airclip" autocomplete="off">
+        <select id="airclip" autocomplete="off" class="inbutton">
            <option value="0">No Airspace</option>
            <option value="3001">3000</option>
             <option value="4501">4500</option>
@@ -66,7 +66,7 @@
     </p>
      <p>
         <label for="fileControl">Select a file to view:</label>
-        <input id="fileControl" type="file" />
+        <input id="fileControl" type="file"  accept=".igc" class="inbutton"/>
     </p>
      
      <div id="flightInfo">
@@ -86,7 +86,7 @@
     <p>You may enter <a href="http://www.spsys.demon.co.uk/turningpoints.htm" target="_blank">BGA trigraphs</a>, six character codes for waypoints on the <a href="http://www.segelflug.de/vereine/welt2000/" target="_blank"> Welt2000 database</a>  or Lat/Long in either  'dd:mm.mmm&nbsp;N&nbsp;ddd:mm.mmm&nbsp;W' or 'dd:mm:ss&nbsp;N&nbsp;ddd:mm:ss&nbsp;W' format.  Start and finish must be filled in, blank turning points will be ignored.</p>
     <p id="requestdata">
     Start: <input type="text" id="start"/>   TP1:  <input type="text"/> TP2:  <input type="text"/> <br>
-    TP3:  <input type="text"/> TP4:  <input type="text"/>   Finish: <input type="text" id="finish"/><button id="enterTask">Enter</button> <button id="clearTask">Clear</button></p>
+    TP3:  <input type="text"/> TP4:  <input type="text"/>   Finish: <input type="text" id="finish"/><button id="enterTask" class="inbutton">Enter</button> <button id="clearTask" class="inbutton">Clear</button></p>
     
 
 <div id="task">
@@ -104,9 +104,9 @@
             <div id="map"></div>
             <div id="slider">
             <label for="timeSlider">Time:</label>
-            <button id="timeBack">&lt;</button>
+            <button id="timeBack" class="inbutton">&lt;</button>
             <input type="range" id="timeSlider" step="1" value="0" min="0" max="100"/>
-            <button id="timeForward">&gt;</button>
+            <button id="timeForward" class="inbutton">&gt;</button>
             <p id="timePositionDisplay"></p>
         </div>
         </div>
