@@ -16,12 +16,25 @@ var task= null;
 
 function showTask()  {
     var i;
+    var pointlabel;
+    $('#taskbuttons').html("");
     $('#taskinfo').html("");
-    for(i=0;i < task.labels.length; i++) {
+    for(i=0; i < task.labels.length; i++) {
         $('#taskinfo').append('<tr><th>' + task.labels[i]  +':</th><td>' +task.names[i]  + ':</td><td>' + task.descriptions[i] + '</td></tr>');
+        switch (i)  {
+          case  0:
+              pointlabel="Start";
+              break;
+          case task.labels.length-1:
+              pointlabel="Finish";
+              break;
+          default:
+              pointlabel="TP" + i.toString();
+         }
+        $('#taskbuttons').append('&nbsp;<button>' + pointlabel +'</button>');
+        $('#tasklength').text("Task length: " +  task.distance.toFixed(1) + " Km");
+        $('#task').show();
     }
-      $('#tasklength').text("Task length: " +  task.distance.toFixed(1) + " Km");
-      $('#task').show();
 }
     
 function pointDescription(coords) {
@@ -41,6 +54,7 @@ function pointDescription(coords) {
 function clearTask(mapControl) {
     $('#taskinfo').html("");
     $('#tasklength').html("");
+     $('#taskbuttons').html("");
     mapControl.zapTask();
     $('#task').hide();
     task= null;
@@ -321,6 +335,13 @@ function gettimezone(igcFile,mapControl)  {
         });
     }
     
+    function bindTaskButtons(mapControl) {
+        $('#taskbuttons button').on('click', function(event) {
+        var li=$(this).index();
+       mapControl.showTP(task.coords[li]);
+         });
+    }
+    
     function displayIgc(mapControl) {
         
         clearTask(mapControl);
@@ -354,6 +375,8 @@ function gettimezone(igcFile,mapControl)  {
       if(task!==null) {
            showTask();
             mapControl.addTask(task.coords,task.labels);
+            //Need to bind event after buttons are created
+        bindTaskButtons(mapControl);
       }
         // Display the headers.
         var headerBlock = $('#headers');
@@ -397,7 +420,6 @@ function gettimezone(igcFile,mapControl)  {
                       $('#errorMessage').text('');
                       mapControl.reset();
                       $('#timeSlider').val(0);
-                     // showAirspace(mapControl);
                       igcFile = parseIGC(this.result);
                       
                       displayIgc(mapControl);
@@ -441,29 +463,6 @@ function gettimezone(igcFile,mapControl)  {
            updateTimeline(t, mapControl);
         });
         
-        $('#timeBack').click(function() {
-           var slider = $('#timeSlider');
-           var curTime = parseInt(slider.val(), 10);
-           curTime--;
-           if(curTime < 0) {
-                 curTime = 0;
-           }
-           slider.val(curTime);
-           updateTimeline(curTime, mapControl);
-        });
-        
-         $('#timeForward').click(function() {
-           var slider = $('#timeSlider');
-           var curTime = parseInt(slider.val(), 10);
-           var maxval= slider.prop('max');
-           curTime++;
-           if(curTime >  maxval) {
-                 curTime = maxval;
-           }
-           slider.val(curTime);
-           updateTimeline(curTime, mapControl);
-        });
-
         $('#airclip').change(function() {
              mapControl.updateAirspace(Number( $("#airclip").val()));
          });  
@@ -475,11 +474,16 @@ function gettimezone(igcFile,mapControl)  {
            clearTask(mapControl);
     });
     
+    $('#zoomtrack').click(function() {
+        mapControl.zoomToTrack();
+    });
+         
         $('#enterTask').click(function() {
        clearTask(mapControl);
        parseUserTask();
        showTask();
        mapControl.addTask(task.coords,task.labels);
+       bindTaskButtons(mapControl);
     });
         
          $('#barogram').on('plotclick', function (event, pos, item) {

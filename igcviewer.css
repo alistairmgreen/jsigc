@@ -35,14 +35,9 @@ h1  {
     width: 6em;
     vertical-align: top;
 }
- 
- #slider button {
-     width: 2em;
-    vertical-align: top;
- }
- 
+  
 #slider input[type='range'] {
-    width: calc(100% - 11em);
+    width: calc(100% - 6em);
     padding-bottom: 0px; /* Default padding is huge in Internet Explorer.*/
 }
 
@@ -81,7 +76,7 @@ h1  {
         height: calc(90vh - 130px);
     }
     
-    .inbutton  {
+   button,  .inbutton  {
     height: 35px;
     font-size: 20px;
     }

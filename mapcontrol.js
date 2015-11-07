@@ -131,8 +131,10 @@ function createMapControl(elementName) {
 
     var map = L.map(elementName);
 
-    //Airspace clip altitude now a property of this object
+    //Airspace clip altitude and initial bounds now a property of this object
    var airClip= 0;
+   
+   var initBounds;
 
     var mapQuestAttribution = ' | Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">';
     var mapLayers = {
@@ -188,8 +190,12 @@ function createMapControl(elementName) {
                 timePositionMarker
             ]).addTo(map);
             layersControl.addOverlay(mapLayers.track, 'Flight path');
-
-            map.fitBounds(trackLine.getBounds());
+            initBounds=(trackLine.getBounds());
+            map.fitBounds(initBounds);
+        },
+        
+        zoomToTrack: function() {
+            map.fitBounds(initBounds);
         },
         
        zapTask: function()  {
@@ -251,6 +257,10 @@ function createMapControl(elementName) {
         //called to turn on airspace updating
         activateEvents: function() {
          map.on('moveend', showAirspace);
+        },
+        
+        showTP: function(tpoint) {
+            map.setView(tpoint,13);
         },
 
         setTimeMarker: function (timeIndex) {
