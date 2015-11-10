@@ -3,6 +3,7 @@ body {
 	font-family: Tahoma, Geneva, sans-serif;
 	background: #F9F9F9;
 	color: #404040;
+        font-size: 1.0em;
 }
 
 h1  {
@@ -135,4 +136,9 @@ display: none;
 
 #flightInfo  {
    display: none;
+}
+
+@-ms-viewport  {
+    width: extend-to-zoom;
+    zoom: 1.0;
 }
