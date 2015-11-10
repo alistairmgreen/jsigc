@@ -141,9 +141,9 @@ function parseIGC(igcFile) {
             var positionTime = new Date(flightDate.getTime());
             positionTime.setUTCHours(parseInt(positionMatch[1], 10), parseInt(positionMatch[2], 10), parseInt(positionMatch[3], 10));
             // If the flight crosses midnight (UTC) then we now have a time that is 24 hours out.
-            // We know that this is the case if the time is earlier than the one for the previous position fix.
+            // We know that this is the case if the time is earlier than the first position fix.
             if (model.recordTime.length > 0 &&
-                model.recordTime[model.recordTime.length - 1] > positionTime) {
+                model.recordTime[0] > positionTime) {
                 positionTime.setDate(flightDate.getDate() + 1);
             }
 
