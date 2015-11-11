@@ -53,6 +53,7 @@
             <option value="metres">Metres</option>
         </select>
         &nbsp;&nbsp; 
+        <span class="nowrap">
         <label for="airclip">Clip airspace above:</label>
         <select id="airclip" autocomplete="off" class="inbutton">
            <option value="0">No Airspace</option>
@@ -64,6 +65,7 @@
             <option value="19501">19500</option>
         </select>
         feet
+        </span>
     </p>
      <p>
         <label for="fileControl">Select a file to view:</label>
@@ -86,8 +88,13 @@
     <p>Fill in this section if the task declaration in the IGC file is absent or incorrect.  It will override any declaration in the file.  To use the declaration in the IGC file leave it blank.</p>
     <p>You may enter <a href="http://www.spsys.demon.co.uk/turningpoints.htm" target="_blank">BGA trigraphs</a>, six character codes for waypoints on the <a href="http://www.segelflug.de/vereine/welt2000/" target="_blank"> Welt2000 database</a>  or Lat/Long in either  'dd:mm.mmm&nbsp;N&nbsp;ddd:mm.mmm&nbsp;W' or 'dd:mm:ss&nbsp;N&nbsp;ddd:mm:ss&nbsp;W' format.  Start and finish must be filled in, blank turning points will be ignored.</p>
     <p id="requestdata">
-    Start: <input type="text" id="start"/>   TP1:  <input type="text"/> TP2:  <input type="text"/> <br>
-    TP3:  <input type="text"/> TP4:  <input type="text"/>   Finish: <input type="text" id="finish"/><button id="enterTask" class="inbutton">Enter</button> <button id="clearTask" class="inbutton">Clear</button></p>
+    <span class="nowrap">Start: <input type="text" id="start"/>&nbsp;</span>
+    <span class="nowrap">TP1:&nbsp;<input type="text"/>&nbsp;</span>
+    <span class="nowrap">TP2:&nbsp;<input type="text"/>&nbsp;</span>
+    <span class="nowrap">TP3: <input type="text"/>&nbsp;</span>
+    <span class="nowrap"> TP4:  <input type="text"/>&nbsp;</span>
+    <span class="nowrap">Finish: <input type="text" id="finish"/></span>
+    <br><button id="enterTask" class="inbutton">Enter</button> <button id="clearTask" class="inbutton">Clear</button></p>
     
 
 <div id="task">
