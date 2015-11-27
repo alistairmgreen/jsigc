@@ -436,6 +436,14 @@ function gettimezone(igcFile,mapControl)  {
             }
         });
 
+        $('#help').click(function() {
+            window.open("igchelp.html", "_blank");
+        });
+        
+         $('#about').click(function() {
+            window.open("igcabout.html", "_blank");
+        });
+        
         $('#altitudeUnits').change(function () {
             var altitudeUnit = $(this).val();
             if (altitudeUnit === 'feet') {
@@ -478,6 +486,17 @@ function gettimezone(igcFile,mapControl)  {
         mapControl.zoomToTrack();
     });
          
+    $('button.toggle').click(
+            function(){
+                $(this).next().toggle();
+              if($(this).next().is(':visible')) {
+                  $(this).text('Hide');
+              }
+              else {
+                  $(this).text('Show');
+              }
+            });
+    
         $('#enterTask').click(function() {
        clearTask(mapControl);
        parseUserTask();
