@@ -270,7 +270,7 @@ function gettimezone(igcFile,mapControl)  {
         return (n < 10) ? ("0" + n.toString()) : n.toString();
     }
     
-    function plotBarogram(igcFile) {
+    function plotBarogram() {
         var nPoints = igcFile.recordTime.length;
         var pressureBarogramData = [];
         var gpsBarogramData = [];
@@ -452,7 +452,6 @@ function gettimezone(igcFile,mapControl)  {
             else {
                 altitudeConversionFactor = 1.0;
             }
-        
             if (igcFile !== null) {
                 barogramPlot = plotBarogram();
                 updateTimeline($('#timeSlider').val(), mapControl);
