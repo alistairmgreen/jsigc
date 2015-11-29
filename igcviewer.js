@@ -202,6 +202,17 @@
         updateTimeline(0, mapControl);
     }
 
+    function storePreference(name, value) {
+        if (window.localStorage) {
+            try {
+                localStorage.setItem(name, value);
+            }
+            catch (e) {
+                // If permission is denied, ignore the error.
+            }
+        }
+    }
+
     $(document).ready(function () {
         var mapControl = createMapControl('map');
 
@@ -261,13 +272,8 @@
                 updateTimeline($('#timeSlider').val(), mapControl);
             }
 
-            if (window.localStorage && !raisedProgrammatically) {
-                try {
-                    localStorage.setItem("altitudeUnit", altitudeUnit);
-                }
-                catch (e) {
-                    // If local storage permission is denied, ignore the error.
-                }
+            if (!raisedProgrammatically) {
+                storePreference("altitudeUnit", altitudeUnit);
             }
         });
   
