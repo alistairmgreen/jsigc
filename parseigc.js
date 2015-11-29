@@ -141,9 +141,9 @@ function parseIGC(igcFile) {
             var positionTime = new Date(flightDate.getTime());
             positionTime.setUTCHours(parseInt(positionMatch[1], 10), parseInt(positionMatch[2], 10), parseInt(positionMatch[3], 10));
             // If the flight crosses midnight (UTC) then we now have a time that is 24 hours out.
-            // We know that this is the case if the time is earlier than the one for the previous position fix.
+            // We know that this is the case if the time is earlier than the first position fix.
             if (model.recordTime.length > 0 &&
-                model.recordTime[model.recordTime.length - 1] > positionTime) {
+                model.recordTime[0] > positionTime) {
                 positionTime.setDate(flightDate.getDate() + 1);
             }
 
@@ -152,40 +152,6 @@ function parseIGC(igcFile) {
                 latLong: parseLatLong(positionMatch[4]),
                 pressureAltitude: parseInt(positionMatch[6], 10),
                 gpsAltitude: parseInt(positionMatch[7], 10)
-            };
-        }
-    }
-
-    function parseTask(taskRecord) {
-        var taskRegex = /^C([\d]{7}[NS][\d]{8}[EW])(.*)/;
-        var taskMatch = taskRecord.match(taskRegex);
-        var degreeSymbol = '\u00B0';
-
-        if (taskMatch) {
-            var name = taskMatch[2];
-
-            // If the turnpoint name is blank, use the latitude and longitude.
-            if (name.trim().length === 0) {
-                name = taskRecord.substring(1, 3) +
-                degreeSymbol +
-                taskRecord.substring(3, 5) +
-                '.' +
-                taskRecord.substring(5, 8) +
-                "' " +
-                taskRecord.charAt(8) +
-                ', ' +
-                taskRecord.substring(9, 12) +
-                degreeSymbol +
-                taskRecord.substring(12, 14) +
-                '.' +
-                taskRecord.substring(14, 17) +
-                "' " +
-                taskRecord.charAt(17);
-            }
-
-            return {
-                latLong: parseLatLong(taskMatch[1]),
-                name: name
             };
         }
     }
@@ -207,12 +173,7 @@ function parseIGC(igcFile) {
         latLong: [],
         pressureAltitude: [],
         gpsAltitude: [],
-        task: {
-            coordinates: [],
-            names: [],
-            takeoff: "",
-            landing: ""
-        }
+        taskpoints: []
     };
 
     // The first line should begin with 'A' followed by
@@ -233,13 +194,14 @@ function parseIGC(igcFile) {
     });
 
     var flightDate = extractDate(igcFile);
-
+    var taskpoints= [];
     var lineIndex;
     var positionData;
     var recordType;
     var currentLine;
     var turnpoint; // for task declaration lines
     var headerData;
+
     for (lineIndex = 0; lineIndex < igcLines.length; lineIndex++) {
         currentLine = igcLines[lineIndex];
         recordType = currentLine.charAt(0);
@@ -255,11 +217,11 @@ function parseIGC(igcFile) {
                 break;
 
             case 'C': // Task declaration
-                turnpoint = parseTask(currentLine);
-                if (turnpoint) {
-                    model.task.coordinates.push(turnpoint.latLong);
-                    model.task.names.push(turnpoint.name);
-                }
+                var taskRegex = /^C[\d]{7}[NS][\d]{8}[EW].*/;
+               if( taskRegex.test(currentLine)) {
+                   //drop the "C" and push raw data to model.  Will parse later if needed using same functions as for user entered tasks
+                   model.taskpoints.push(currentLine.substring(1).trim());
+                    }
                 break;
 
             case 'H': // Header information
@@ -270,28 +232,5 @@ function parseIGC(igcFile) {
                 break;
         }
     }
-
-// Extract takeoff and landing  names from model.task and reduce model.task.coordinates to what we want to plot
-// Throw away takeoff and landing coordinates as we won't be using them
-if(model.task.names.length > 0)  {
-    var takeoffname=model.task.takeoff=model.task.names.shift();
-   if  (model.task.coordinates[0][0]!==0)  {
-       model.task.takeoff=takeoffname;
-   }
-else {
-            model.task.takeoff="";
-   }
-  
-model.task.coordinates.shift();
-    var landingname=model.task.names.pop();
-    if  (model.task.coordinates[model.task.coordinates.length-1][0]!==0)  {
-       model.task.landing=landingname;
-   }
-   else     {
-            model.task.landing="";
-     }
-    model.task.coordinates.pop();
-    }
-
     return model;
 }

@@ -1,0 +1,42 @@
+body {
+   font-style: normal;
+	font-family: Tahoma, Geneva, sans-serif;
+	background: #F4F4FF;
+	color: #404040;
+        font-size: 0.9em;
+}
+
+h1  {
+    text-align: center;
+}
+
+#titlediv   {
+   text-align: center;
+}
+
+h3	{
+	font-size: 1.2em;
+	color: #808080;
+	margin-bottom: 1.0em;
+	}
+
+div.content     {
+		width: 920px;
+		margin: auto;
+		padding:20px 30px 10px 30px;
+                text-align: justify;
+		}
+
+@media print, screen and (max-width: 1100px) {
+ div.content   {
+        width: 90%;
+        text-align: justify;
+        padding: 0px;
+    }
+    
+     button  {
+    height: 35px;
+    font-size: 20px;
+    margin: 5px;
+    }
+}

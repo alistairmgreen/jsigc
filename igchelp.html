@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="initial-scale=1, width=device-width">
+    <title>IGC Viewer help</title>
+    <link rel="stylesheet" href="igctext.css" />
+</head>
+<body>
+ <div id='titlediv'>
+    <h1>IGC Webview</h1>
+    <p> &copy; 2015 Alistair Malcolm Green and Richard Brisbourne </p>
+    <h3>User Instructions</h3>
+</div>
+<div class="content">
+<p>
+IGC Webview is a web based application for viewing logger traces in  IGC format.  Nearly all gliding loggers now either record in that format or save files in it- for any others including those not originally designed for gliding purposes, there are conversion programs out there; a popular example is <a href="http://www.gpsbabel.org">GPSBabel</a>.  Igc files can normally be identified by the extension ".igc".
+</p>
+<p>
+IGCWebview runs on a wide range of devices and operating systems; all you need is an internet connection and a browser with Javascript enabled.  It uses world-wide mapping  so can be used for flights made anywhere.
+</p>
+<p>
+Although designed to be as intuitive as possible, the program has one or two features you might miss, so please read this if you haven't used it before.
+</p>
+<p>
+<b>Getting started:</b>
+<br/>
+Simple.  Ignore the "task" setting for now.   Click the "Browse" button and select an igc file from your local computer or device.  On load a map will open up together with a barogram, and information from the file header will be displayed.  The map will also show the location of any controlled/special use airspace in the area, if we have the data.  If the file contains a task declaration this will also be shown on the map, together waypoint observation zones as defined in the FAI Sporting Code.
+</p>
+<p>
+<b>Altering the display:</b><br/>
+You can move around and zoom in or out on the map- if you've ever used Google Earth it works the same way.  Click and drag to move; zoom in using the "+-" top left, scroll wheel, or on a tablet, "pinching".
+To reduce clutter you can control the airspace clip altitude, or lose the airspace display altogether.  Click on the icon top right on the map to add or remove display of task or track, or to switch between map and satellite picture background.
+</p>
+<p>
+<b>Moving round the track:</b><br/>
+Use the slider control below the map to move the aircraft icon round the track.  The text below the map will give the time and  your position and altitude, and the crosshairs on the barogram will also show altitude and time  flight.  Times are time zone adjusted.If you find the aircraft is moving round too quickly for you and you have a keyboard, you can move it using the arrow keys, but you need to click on the slider first to give it focus.  You can also click on the barogram; the glider will move to the point you've clicked on.
+</p>
+<p>
+<b>Tasks:</b><br/>
+If the task wasn't entered into the logger, you can enter one manually in the section headed "Task- user entry".  This can be done any time before or after loading the igc file.  A wide range of formats is accepted.  Any task entered here will override anything in the IGC file, so if you want to use the task in the file, ensure this section is empty.
+</p>
+<p>
+<b>About IGCWebview:</b><br/>
+IGCWebview is an open source program.  This means that the code is free for anyone to copy, modify and distribute, subject to the terms of the <a href="LICENSE.txt"  target="_blank">licence</a>.  It makes substantial use of other open source  program code and libraries also data distributed under Creative Commons copyright arrangements.   For a full list of sources and contributors see our <a href="igcabout.html"> about</a> page.
+</p>
+<p>
+<b>Feedback:</b><br/>
+We're interested in how well this works for you.  Any ideas, suggestions, and (particularly) bug reports should be e-mailed to igcwebview@glidingweb.org.  If you are a developer interested in the program from a technical point of view, and maybe looking at the code and possibly contributing, there's a lot more information on our <a href="igcabout.html" target="_blank">"about" page</a>.
+</p>
+<button onClick="window.close()">Close window</button>
+</div>
+</body>
+</html>

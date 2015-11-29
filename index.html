@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="initial-scale=1, width=device-width">
     <title>IGC Viewer</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
     <link rel="stylesheet" href="lib/leaflet-awesome-markers/leaflet.awesome-markers.css" />
     <link rel="stylesheet" href="igcviewer.css" />
 
-    <script src="lib/moment.min.js"></script>
-    <script src="lib/moment-timezone-with-data.min.js"></script>
     <script src="lib/jquery-2.1.3.min.js"></script>
     <script src="lib/jquery.flot.min.js"></script>
     <script src="lib/jquery.flot.axislabels.js"></script>
     <script src="lib/jquery.flot.resize.min.js"></script>
     <script src="lib/jquery.flot.crosshair.js"></script>
+    <script src="lib/jquery.flot.time.min.js"></script>
     <script src="lib/leaflet/leaflet.js"></script>
     <script src="lib/leaflet/Semicircle.js"></script>
     <script src="lib/leaflet-awesome-markers/leaflet.awesome-markers.min.js"></script>
@@ -23,94 +23,119 @@
     <script src="igcviewer.js"></script>
 </head>
 <body>
-    <h1>JavaScript IGC Viewer</h1>
+<button id='help'>Help</button>
+<button id='about'>About</button>
+ <div id='titlediv'>
+    <h1>IGC Webview</h1>
 
     <p>
-        A free browser-based tool for viewing GPS tracks and barograph traces from gliding loggers.
-        The files must be in the International Gliding Commission (IGC) format.
+        A free browser-based tool for viewing IGC format  tracks and barograph traces from gliding loggers.
     </p>
-
-    <p>
-        Example files can be found on the <a href="http://www.bgaladder.co.uk/Enquiry.asp">
-            British
-            Gliding Association Ladder
-        </a>. Click on the &quot;Task&quot; column to open the Flight Details
-        window and download the logger file from there.
-    </p>
-
     <p> &copy; 2015 Alistair Malcolm Green and Richard Brisbourne </p>
-
+</div>
     <noscript>
         <p>
             <strong>Please enable JavaScript to use this application.</strong>
         </p>
     </noscript>
-
-    <label for="fileControl">Select a file to view:</label>
-    <input id="fileControl" type="file" />
-
+    <div class="halfwidth">
+      <h2> Preferences </h2>
+      <button class='toggle'>Hide</button>
+      <div class='hideable'>
     <p>
-        <em>Note:</em> The file will be processed entirely within your web browser.
-        Nothing will be uploaded to the Internet.
+    <b>Warning:</b> Unless the "no airspace" option is selected below, outlines of controlled airspace  will be displayed on the map provided we have data for the area.</p>
+    <p>This information may not be accurate,  current or complete and is not valid for navigation or flight planning.   Always consult the official publications for current and correct information. 
     </p>
 
     <div id="errorMessage">
     </div>
 
-    <h2> Preferences </h2>
     <p>
         <label for="altitudeUnits">Altitude units:</label>
-        <select id="altitudeUnits">
-            <option value="metres">Metres</option>
+        <select id="altitudeUnits" autocomplete="off" class="inbutton">
             <option value="feet">Feet</option>
+            <option value="metres">Metres</option>
         </select>
+        &nbsp;&nbsp; 
+        <span class="nowrap">
+        <label for="airclip">Clip airspace above:</label>
+        <select id="airclip" autocomplete="off" class="inbutton">
+           <option value="0">No Airspace</option>
+           <option value="3001">3000 feet</option>
+            <option value="4501">4500 feet</option>
+            <option value="6001" selected>6000 feet</option>
+            <option value="9001">9000 feet</option>
+            <option value="12001">12000 feet</option>
+            <option value="19501">19500 feet</option>
+        </select>
+        </span>
     </p>
+    </div>
+     </div>
+
+    <div class="halfwidth" id="declaration">
+    <h2>Task- user entry </h2>
+      <button class='toggle'>Hide</button>
+      <div>
+    <p>Fill in this section if the task declaration in the IGC file is absent or incorrect.  It will override any declaration in the file.  To use the declaration in the IGC file leave it blank.</p>
+    <p>You may enter <a href="http://www.spsys.demon.co.uk/turningpoints.htm" target="_blank">BGA trigraphs</a>, six character codes for waypoints on the <a href="http://www.segelflug.de/vereine/welt2000/" target="_blank"> Welt2000 database</a>  or Lat/Long in either  'dd:mm.mmm&nbsp;N&nbsp;ddd:mm.mmm&nbsp;W' or 'dd:mm:ss&nbsp;N&nbsp;ddd:mm:ss&nbsp;W' format.  Start and finish must be filled in, blank turning points will be ignored.</p>
+    <p id="requestdata">
+    <span class="nowrap">Start: <input type="text" id="start"/>&nbsp;</span>
+    <span class="nowrap">TP1:&nbsp;<input type="text"/>&nbsp;</span>
+    <span class="nowrap">TP2:&nbsp;<input type="text"/>&nbsp;</span>
+    <span class="nowrap">TP3: <input type="text"/>&nbsp;</span>
+    <span class="nowrap"> TP4:  <input type="text"/>&nbsp;</span>
+    <span class="nowrap">Finish: <input type="text" id="finish"/></span>
+    <br><button id="enterTask" class="inbutton">Enter</button> <button id="clearTask" class="inbutton">Clear</button></p>
     
-    <p>
-        <label for="timeZoneSelect">Time zone:</label>
-        <select id="timeZoneSelect">
-        </select>
-    </p>
-
-    <div id="igcFileDisplay">
-        <h2> Flight Information </h2>
-
-        <table id="headerInfo">
-            <tbody></tbody>
-        </table>
-
-        <div id="task">
+</div>
+<br clear='all'>
+<div id="task">
             <h2> Task </h2>
-            <ul>
-            </ul>
-        </div>
-        
-        <div id="mapWrapper">
+            <button class='toggle'>Hide</button>
+    <div>
+           <table>
+           <tbody id="taskinfo">
+           </tbody>
+           </table>
+            <p id="tasklength"></p>
+        </div> 
+</div>  
+</div>
+<p>
+        <label for="fileControl">Select a file to view:</label>
+        <input id="fileControl" type="file"  accept=".igc" class="inbutton"/>
+    </p>
+<div id="flightInfo">
+    <h2> Flight Information </h2>
+     <button class='toggle'>Hide</button>
+     <div>
+        <table id="headerInfo">
+                 <tbody>
+             <tr><th>Date:</th><td id='datecell'></td></th>
+             </tbody>
+            <tbody id="headers">
+            </tbody>
+        </table>
+    </div>
+    </div>
+<br clear="all"/>
+
+    <div id="igcFileDisplay" >    
+
+        <div id="mapWrapper" class="halfwidth">
             <div id="map"></div>
             <div id="slider">
             <label for="timeSlider">Time:</label>
-            <button id="timeBack">&lt;</button>
+           <!-- <button id="timeBack" class="inbutton">&lt;</button>-->
             <input type="range" id="timeSlider" step="1" value="0" min="0" max="100"/>
-            <button id="timeForward">&gt;</button>
+            <!-- <button id="timeForward" class="inbutton">&gt;</button>-->
             <p id="timePositionDisplay"></p>
+            <p>Zoom:  <button id="zoomtrack">Track</button>&nbsp;&nbsp;<span id="taskbuttons"></span></p>
         </div>
         </div>
-        <div id="barogram"></div>
+        <div id="barogram" class="halfwidth"></div>
     </div>
 
-    <h2> Credits </h2>
-
-    <p>
-        This application was made possible by the following free software projects:
-        <ul>
-            <li><a href="http://www.openstreetmap.org">OpenStreetMap</a></li>
-            <li><a href="https://jquery.com/">jQuery</a></li>
-            <li><a href="http://leafletjs.com/">Leaflet.js interactive map library</a></li>
-            <li><a href="http://www.flotcharts.org/">Flot Charts</a></li>
-            <li><a href="https://github.com/markrcote/flot-axislabels">Flot Axis Labels plugin</a></li>
-            <li><a href="http://momentjs.com/timezone">Moment Timezone library</a></li>
-            <li>Icons by <a href="https://fortawesome.github.io/Font-Awesome/">Font Awesome</a></li>
-        </ul>
-    </p>
 </body>
 </html>

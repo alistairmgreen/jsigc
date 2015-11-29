@@ -1,5 +1,28 @@
 body {
-    font-family: sans-serif;
+   font-style: normal;
+	font-family: Tahoma, Geneva, sans-serif;
+	background: #F4F4FF;
+	color: #404040;
+        font-size: 1.0em;
+}
+
+h1  {
+    text-align: center;
+}
+
+h2 {
+    display: inline;
+}
+#requestdata {
+     line-height: 2.5em;
+}
+
+#requestdata input[type="text"]  {
+    width: 12em;
+}
+
+#titlediv  p  {
+   text-align: center;
 }
 
 #map {
@@ -16,14 +39,9 @@ body {
     width: 6em;
     vertical-align: top;
 }
- 
- #slider button {
-     width: 2em;
-    vertical-align: top;
- }
- 
+  
 #slider input[type='range'] {
-    width: calc(100% - 11em);
+    width: calc(100% - 6em);
     padding-bottom: 0px; /* Default padding is huge in Internet Explorer.*/
 }
 
@@ -43,32 +61,76 @@ body {
    cursor: crosshair;
 }
 
+#taskinfo td   {
+   padding: 0px 20px;    
+}
+
+.nowrap {
+    white-space: nowrap;
+}
+
+
 @media print, screen and (max-width: 1100px) {
-    #mapWrapper, #barogram {
-        width: 90%;
+ div.halfwidth   {
         display: block;
+        width: 90%;
+        margin-left: auto;
+      margin-right: auto;
+    }   
+    
+    button.toggle {
+        float:right;
+    }
+    
+    #mapWrapper, #barogram {
         position: relative;
     }
     
     #barogram {
         height: calc(90vh - 130px);
     }
+    
+   button,  .inbutton  {
+    height: 35px;
+    font-size: 20px;
+    margin: 5px;
+    }
 }
 
 @media screen and (min-width: 1100px) {
-    #mapWrapper, #barogram {
+    div.halfwidth   {
         display: inline-block;
         width: calc(50% - 30px);
+        padding-left:  10px;
+        padding-right: 10px;
     }
 
+    button.toggle {
+        display: none;
+    }
+
+  #help, #about {
+  position: absolute;
+  top:10px;
+  font-weight: bold;
+  }
+
+  #about {
+  right: 10px;
+  }
+    
     #mapWrapper {
         margin-left: 30px;
     }
 
     #barogram {
-        position: absolute;
         right: 0px;
         height: 90vh;
+        position: absolute;
+    }
+    
+    #declaration {
+    float:right;
     }
 }
 
@@ -87,7 +149,25 @@ table#headerInfo {
     border-spacing: 1em 0;
 }
 
+#task {
+   display: none;
+   width: 100%;
+}
+
+#airspace_info {
+display: none;
+}
+
 #headerInfo th {
     text-align: left;
     font-weight: bold;
+}
+
+#flightInfo  {
+   display: none;
+}
+
+@-ms-viewport  {
+    width: extend-to-zoom;
+    zoom: 1.0;
 }
