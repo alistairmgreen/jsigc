@@ -202,6 +202,17 @@
         updateTimeline(0, mapControl);
     }
 
+    function storePreference(name, value) {
+        if (window.localStorage) {
+            try {
+                localStorage.setItem(name, value);
+            }
+            catch (e) {
+                // If permission is denied, ignore the error.
+            }
+        }
+    }
+
     $(document).ready(function () {
         var mapControl = createMapControl('map');
 
@@ -210,17 +221,17 @@
             timeZoneSelect.append(
                  $('<option></option>', { value: name }).text(name));
         });
-        var timeZone = 'UTC'; // There is no easy way to get local time zone!
-        timeZoneSelect.val(timeZone); 
-        moment.tz.setDefault(timeZone);
-        
+                
         timeZoneSelect.change(function () {
-            moment.tz.setDefault($(this).val());
+            var selectedZone = $(this).val();
+            moment.tz.setDefault(selectedZone);
             if (igcFile !== null) {
                 barogramPlot = plotBarogram();
                 updateTimeline($('#timeSlider').val(), mapControl);
                 $('#headerInfo td').first().text(moment(igcFile.recordTime[0]).format('LL'));
             }
+
+            storePreference('timeZone', selectedZone);
         });
         
         $('#fileControl').change(function () {
@@ -247,7 +258,7 @@
             }
         });
 
-        $('#altitudeUnits').change(function () {
+        $('#altitudeUnits').change(function (e, raisedProgrammatically) {
             var altitudeUnit = $(this).val();
             if (altitudeUnit === 'feet') {
                 altitudeConversionFactor = 3.2808399;
@@ -259,6 +270,10 @@
             if (igcFile !== null) {
                 barogramPlot = plotBarogram();
                 updateTimeline($('#timeSlider').val(), mapControl);
+            }
+
+            if (!raisedProgrammatically) {
+                storePreference("altitudeUnit", altitudeUnit);
             }
         });
   
@@ -304,5 +319,31 @@
                  $('#timeSlider').val(item.dataIndex);
              }
          });
+
+        // Load preferences from local storage, if available.
+
+         var altitudeUnit = '';
+         var timeZone = '';
+
+         if (window.localStorage) {
+             try {
+                 altitudeUnit = localStorage.getItem('altitudeUnit');
+                 if (altitudeUnit) {
+                     $('#altitudeUnits').val(altitudeUnit).trigger('change', true);
+                 }
+
+                 timeZone = localStorage.getItem('timeZone');
+             }
+             catch (e) {
+                 // If permission is denied, ignore the error.
+             }
+         }
+
+         if (!timeZone) {
+             timeZone = 'UTC';
+         }
+
+         timeZoneSelect.val(timeZone);
+         moment.tz.setDefault(timeZone);
     });
 }(jQuery));
