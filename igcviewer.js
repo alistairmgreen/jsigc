@@ -247,7 +247,7 @@
             }
         });
 
-        $('#altitudeUnits').change(function () {
+        $('#altitudeUnits').change(function (e, raisedProgrammatically) {
             var altitudeUnit = $(this).val();
             if (altitudeUnit === 'feet') {
                 altitudeConversionFactor = 3.2808399;
@@ -259,6 +259,15 @@
             if (igcFile !== null) {
                 barogramPlot = plotBarogram();
                 updateTimeline($('#timeSlider').val(), mapControl);
+            }
+
+            if (window.localStorage && !raisedProgrammatically) {
+                try {
+                    localStorage.setItem("altitudeUnit", altitudeUnit);
+                }
+                catch (e) {
+                    // If local storage permission is denied, ignore the error.
+                }
             }
         });
   
@@ -304,5 +313,17 @@
                  $('#timeSlider').val(item.dataIndex);
              }
          });
+
+         if (window.localStorage) {
+             try {
+                 var altitudeUnit = localStorage.getItem("altitudeUnit");
+                 if (altitudeUnit) {
+                     $('#altitudeUnits').val(altitudeUnit).trigger('change', true);
+                 }
+             }
+             catch (e) {
+                 // If permission is denied, ignore the error.
+             }
+         }
     });
 }(jQuery));
