@@ -120,7 +120,7 @@ function createMapControl(elementName) {
 
         addTrack: function (latLong) {
             trackLatLong = latLong;
-            var trackLine = L.polyline(latLong, { color: 'red' });
+            var trackLine = L.polyline(latLong, { color: 'red', weight: 3 });
             timePositionMarker = L.marker(latLong[0], { icon: planeIcon });
             mapLayers.track = L.layerGroup([
                 trackLine,
@@ -133,7 +133,7 @@ function createMapControl(elementName) {
 
       addTask: function (coordinates, names) {
             //Clearer if we don't show track to and from start line and finish line, as we are going to show lines
-            var taskLayers = [L.polyline(coordinates, { color: 'blue' })];
+            var taskLayers = [L.polyline(coordinates, { color: 'blue', weight: 3 })];
             var lineDrawOptions = {
                 fillColor: 'green',
                 color: 'black',
