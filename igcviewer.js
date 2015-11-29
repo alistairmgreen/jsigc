@@ -231,15 +231,7 @@
                 $('#headerInfo td').first().text(moment(igcFile.recordTime[0]).format('LL'));
             }
 
-            if (window.localStorage) {
-                try {
-                    localStorage.setItem('timeZone', selectedZone);
-                }
-                catch (e) {
-                    // If we can't save default time zone, ignore the error.
-                    // It will default to UTC on the next visit.
-                }
-            }
+            storePreference('timeZone', selectedZone);
         });
         
         $('#fileControl').change(function () {
