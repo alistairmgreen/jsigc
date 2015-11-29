@@ -210,16 +210,24 @@
             timeZoneSelect.append(
                  $('<option></option>', { value: name }).text(name));
         });
-        var timeZone = 'UTC'; // There is no easy way to get local time zone!
-        timeZoneSelect.val(timeZone); 
-        moment.tz.setDefault(timeZone);
-        
+                
         timeZoneSelect.change(function () {
-            moment.tz.setDefault($(this).val());
+            var selectedZone = $(this).val();
+            moment.tz.setDefault(selectedZone);
             if (igcFile !== null) {
                 barogramPlot = plotBarogram();
                 updateTimeline($('#timeSlider').val(), mapControl);
                 $('#headerInfo td').first().text(moment(igcFile.recordTime[0]).format('LL'));
+            }
+
+            if (window.localStorage) {
+                try {
+                    localStorage.setItem('timeZone', selectedZone);
+                }
+                catch (e) {
+                    // If we can't save default time zone, ignore the error.
+                    // It will default to UTC on the next visit.
+                }
             }
         });
         
@@ -314,16 +322,30 @@
              }
          });
 
+        // Load preferences from local storage, if available.
+
+         var altitudeUnit = '';
+         var timeZone = '';
+
          if (window.localStorage) {
              try {
-                 var altitudeUnit = localStorage.getItem("altitudeUnit");
+                 altitudeUnit = localStorage.getItem('altitudeUnit');
                  if (altitudeUnit) {
                      $('#altitudeUnits').val(altitudeUnit).trigger('change', true);
                  }
+
+                 timeZone = localStorage.getItem('timeZone');
              }
              catch (e) {
                  // If permission is denied, ignore the error.
              }
          }
+
+         if (!timeZone) {
+             timeZone = 'UTC';
+         }
+
+         timeZoneSelect.val(timeZone);
+         moment.tz.setDefault(timeZone);
     });
 }(jQuery));
