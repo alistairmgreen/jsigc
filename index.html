@@ -5,19 +5,19 @@
     <meta name="viewport" content="initial-scale=1, width=device-width">
     <title>IGC Viewer</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
-    <link rel="stylesheet" href="lib/leaflet-awesome-markers/leaflet.awesome-markers.css" />
+    <link rel="stylesheet" href="../lib/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="../lib/leaflet-awesome-markers/leaflet.awesome-markers.css" />
     <link rel="stylesheet" href="igcviewer.css" />
 
-    <script src="lib/jquery-2.1.3.min.js"></script>
-    <script src="lib/jquery.flot.min.js"></script>
-    <script src="lib/jquery.flot.axislabels.js"></script>
-    <script src="lib/jquery.flot.resize.min.js"></script>
-    <script src="lib/jquery.flot.crosshair.js"></script>
-    <script src="lib/jquery.flot.time.min.js"></script>
-    <script src="lib/leaflet/leaflet.js"></script>
-    <script src="lib/leaflet/Semicircle.js"></script>
-    <script src="lib/leaflet-awesome-markers/leaflet.awesome-markers.min.js"></script>
+    <script src="../lib/jquery-2.1.3.min.js"></script>
+    <script src="../lib/jquery.flot.min.js"></script>
+    <script src="../lib/jquery.flot.axislabels.js"></script>
+    <script src="../lib/jquery.flot.resize.min.js"></script>
+    <script src="../lib/jquery.flot.crosshair.js"></script>
+    <script src="../lib/jquery.flot.time.min.js"></script>
+    <script src="../lib/leaflet/leaflet.js"></script>
+    <script src="../lib/leaflet/Semicircle.js"></script>
+    <script src="../lib/leaflet-awesome-markers/leaflet.awesome-markers.min.js"></script>
     <script src="parseigc.js"></script>
     <script src="mapcontrol.js"></script>
     <script src="igcviewer.js"></script>
@@ -32,12 +32,20 @@
         A free browser-based tool for viewing IGC format  tracks and barograph traces from gliding loggers.
     </p>
     <p> &copy; 2015 Alistair Malcolm Green and Richard Brisbourne </p>
+      <p>
+        <label for="fileControl"><b>Select a file to view:</b></label>
+        <input id="fileControl" type="file"  accept=".igc" class="inbutton"/>
+    </p>
 </div>
     <noscript>
         <p>
             <strong>Please enable JavaScript to use this application.</strong>
         </p>
     </noscript>
+    <div id="errorMessage">
+    </div>
+  
+
     <div class="halfwidth">
       <h2> Preferences </h2>
       <button class='toggle'>Hide</button>
@@ -46,20 +54,16 @@
     <b>Warning:</b> Unless the "no airspace" option is selected below, outlines of controlled airspace  will be displayed on the map provided we have data for the area.</p>
     <p>This information may not be accurate,  current or complete and is not valid for navigation or flight planning.   Always consult the official publications for current and correct information. 
     </p>
-
-    <div id="errorMessage">
-    </div>
-
     <p>
         <label for="altitudeUnits">Altitude units:</label>
-        <select id="altitudeUnits" autocomplete="off" class="inbutton">
+        <select id="altitudeUnits" class="inbutton">
             <option value="feet">Feet</option>
             <option value="metres">Metres</option>
         </select>
         &nbsp;&nbsp; 
         <span class="nowrap">
         <label for="airclip">Clip airspace above:</label>
-        <select id="airclip" autocomplete="off" class="inbutton">
+        <select id="airclip" class="inbutton">
            <option value="0">No Airspace</option>
            <option value="3001">3000 feet</option>
             <option value="4501">4500 feet</option>
@@ -71,8 +75,7 @@
         </span>
     </p>
     </div>
-     </div>
-
+ </div>
     <div class="halfwidth" id="declaration">
     <h2>Task- user entry </h2>
       <button class='toggle'>Hide</button>
@@ -89,7 +92,7 @@
     <br><button id="enterTask" class="inbutton">Enter</button> <button id="clearTask" class="inbutton">Clear</button></p>
     
 </div>
-<br clear='all'>
+
 <div id="task">
             <h2> Task </h2>
             <button class='toggle'>Hide</button>
@@ -102,37 +105,31 @@
         </div> 
 </div>  
 </div>
-<p>
-        <label for="fileControl">Select a file to view:</label>
-        <input id="fileControl" type="file"  accept=".igc" class="inbutton"/>
-    </p>
+
 <div id="flightInfo">
     <h2> Flight Information </h2>
      <button class='toggle'>Hide</button>
      <div>
         <table id="headerInfo">
                  <tbody>
-             <tr><th>Date:</th><td id='datecell'></td></th>
+             <tr><th>Date:</th><td id='datecell'></td>
              </tbody>
             <tbody id="headers">
             </tbody>
         </table>
     </div>
     </div>
-<br clear="all"/>
-
+    <br>
     <div id="igcFileDisplay" >    
 
         <div id="mapWrapper" class="halfwidth">
             <div id="map"></div>
             <div id="slider">
             <label for="timeSlider">Time:</label>
-           <!-- <button id="timeBack" class="inbutton">&lt;</button>-->
             <input type="range" id="timeSlider" step="1" value="0" min="0" max="100"/>
-            <!-- <button id="timeForward" class="inbutton">&gt;</button>-->
             <p id="timePositionDisplay"></p>
-            <p>Zoom:  <button id="zoomtrack">Track</button>&nbsp;&nbsp;<span id="taskbuttons"></span></p>
         </div>
+        <p>Zoom:  <button id="zoomtrack">Track</button>&nbsp;&nbsp;<span id="taskbuttons"></span></p>
         </div>
         <div id="barogram" class="halfwidth"></div>
     </div>

@@ -411,7 +411,15 @@ function gettimezone(igcFile,mapControl)  {
 
 
     $(document).ready(function () {
-        var mapControl = createMapControl('map');        
+        var mapControl = createMapControl('map');  
+        var altitudeUnit = $('#altitudeUnits').val();
+            if (altitudeUnit === 'feet') {
+                altitudeConversionFactor = 3.2808399;
+            }
+            else {
+                altitudeConversionFactor = 1.0;
+            }
+            
         $('#fileControl').change(function () {
             if (this.files.length > 0) {
                 var reader = new FileReader();
@@ -512,5 +520,5 @@ function gettimezone(igcFile,mapControl)  {
              }
          });
     });
-            
+ 
 }(jQuery));
