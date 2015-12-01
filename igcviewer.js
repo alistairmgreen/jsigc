@@ -483,8 +483,12 @@ function gettimezone(igcFile,mapControl)  {
            updateTimeline(t, mapControl);
         });
         
-        $('#airclip').change(function() {
-             mapControl.updateAirspace(Number( $("#airclip").val()));
+        $('#airclip').change(function () {
+            var clipping = $(this).val();
+            if (igcFile !== null) {
+                mapControl.updateAirspace(Number(clipping));
+            }
+            storePreference("airspaceClip", clipping);
          });  
   
          $('#clearTask').click(function() {
@@ -518,24 +522,29 @@ function gettimezone(igcFile,mapControl)  {
     });
         
          $('#barogram').on('plotclick', function (event, pos, item) {
-             console.log('plot click');
              if (item) {
                  updateTimeline(item.dataIndex, mapControl);
                  $('#timeSlider').val(item.dataIndex);
              }
          });
 
+         var altitudeUnit = '', airspaceClip = '';
          if (window.localStorage) {
              try {
-                 var altitudeUnit = localStorage.getItem("altitudeUnit");
+                 altitudeUnit = localStorage.getItem("altitudeUnit");
                  if (altitudeUnit) {
                      $('#altitudeUnits').val(altitudeUnit).trigger('change', true);
+                 }
+
+                 airspaceClip = localStorage.getItem("airspaceClip");
+                 if (airspaceClip) {
+                     $('#airclip').val(airspaceClip);
                  }
              }
              catch (e) {
                  // If permission is denied, ignore the error.
              }
-         }
+         }  
     });
             
 }(jQuery));
