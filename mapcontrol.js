@@ -36,8 +36,8 @@ function createMapControl(elementName) {
         //assume earth is a sphere circumference 40030 Km 
         var latdelta = linerad * longdiff / hypotenuse / 111.1949269;
         var longdelta = linerad * latdiff / hypotenuse / 111.1949269 / Math.cos(startrads);
-        var linestart =  L.latLng(pt1[0] - latdelta, pt1[1] - longdelta);
-        var lineend =  L.latLng(pt1[0] + latdelta, longdelta + pt1[1]);
+        var linestart = L.latLng(pt1[0] - latdelta, pt1[1] - longdelta);
+        var lineend = L.latLng(pt1[0] + latdelta, longdelta + pt1[1]);
         var polylinePoints = [linestart, lineend];
         var polylineOptions = {
             color: 'green',
@@ -72,27 +72,37 @@ function createMapControl(elementName) {
 
     var map = L.map(elementName);
 
-    var mapQuestAttribution = ' | Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">';
+    var cartoAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://cartodb.com/attributions">CartoDB</a>';
     var mapLayers = {
-        openStreetMap: L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.jpg', {
-            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>' +
-                         mapQuestAttribution,
+        positron: L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+            attribution: cartoAttribution,
             maxZoom: 18
         }),
 
-        photo: L.tileLayer('http://otile1.mqcdn.com/tiles/1.0.0/sat/{z}/{x}/{y}.jpg', {
-            attribution: 'Portions Courtesy NASA/JPL-Caltech and U.S. Depart. of Agriculture, Farm Service Agency' +
-                         mapQuestAttribution,
-            maxZoom: 11
+        darkMatter: L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png', {
+            attribution: cartoAttribution,
+            maxZoom: 18
+        }),
+
+        toner: L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://www.openstreetmap.org/copyright">ODbL</a>.',
+            maxZoom: 18
+        }),
+
+        watercolor: L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.png', {
+            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.',
+            maxZoom: 18
         })
     };
 
     var layersControl = L.control.layers({
-        'MapQuest OpenStreetMap': mapLayers.openStreetMap,
-        'MapQuest Open Aerial (Photo)': mapLayers.photo
+        'Carto Positron': mapLayers.positron,
+        'Carto Dark Matter': mapLayers.darkMatter,
+        'Stamen Toner': mapLayers.toner,
+        'Stamen Watercolor': mapLayers.watercolor
     });
 
-    mapLayers.openStreetMap.addTo(map);
+    mapLayers.positron.addTo(map);
     layersControl.addTo(map);
 
     var trackLatLong = [];
@@ -103,7 +113,7 @@ function createMapControl(elementName) {
         iconColor: 'white',
         markerColor: 'red'
     });
-    
+
     return {
         reset: function () {
             // Clear any existing track data so that a new file can be loaded.
@@ -131,7 +141,7 @@ function createMapControl(elementName) {
             map.fitBounds(trackLine.getBounds());
         },
 
-      addTask: function (coordinates, names) {
+        addTask: function (coordinates, names) {
             //Clearer if we don't show track to and from start line and finish line, as we are going to show lines
             var taskLayers = [L.polyline(coordinates, { color: 'blue', weight: 3 })];
             var lineDrawOptions = {
@@ -142,7 +152,7 @@ function createMapControl(elementName) {
             };
             var sectorDrawOptions = {
                 fillColor: 'green',
-                fillOpacity :0.1,
+                fillOpacity: 0.1,
                 color: 'black',
                 weight: 1,
                 opacity: 0.8
@@ -168,19 +178,19 @@ function createMapControl(elementName) {
                         break;
                     default:
                         taskLayers.push(L.circle(coordinates[j], tpCircleRadius, sectorDrawOptions));
-                        var tpsector = getTpSector(coordinates[j], coordinates[j - 1], coordinates[j + 1], tpSectorRadius, tpSectorAngle,sectorDrawOptions);
+                        var tpsector = getTpSector(coordinates[j], coordinates[j - 1], coordinates[j + 1], tpSectorRadius, tpSectorAngle, sectorDrawOptions);
                         taskLayers.push(tpsector);
                 }
             }
             mapLayers.task = L.layerGroup(taskLayers).addTo(map);
             layersControl.addOverlay(mapLayers.task, 'Task');
         },
-        
+
         setTimeMarker: function (timeIndex) {
             var markerLatLng = trackLatLong[timeIndex];
             if (markerLatLng) {
                 timePositionMarker.setLatLng(markerLatLng);
-                
+
                 if (!map.getBounds().contains(markerLatLng)) {
                     map.panTo(markerLatLng);
                 }
