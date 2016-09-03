@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="initial-scale=1, width=device-width">
@@ -23,23 +24,23 @@
     <script src="mapcontrol.js"></script>
     <script src="igcviewer.js"></script>
 </head>
+
 <body>
     <h1>JavaScript IGC Viewer</h1>
 
     <p>
-        A free browser-based tool for viewing GPS tracks and barograph traces from gliding loggers.
-        The files must be in the International Gliding Commission (IGC) format.
+        A free browser-based tool for viewing GPS tracks and barograph traces from gliding loggers. The files must be in the International
+        Gliding Commission (IGC) format.
     </p>
 
     <p>
-        Example files can be found on the <a href="http://www.bgaladder.co.uk/Enquiry.asp">
-            British
-            Gliding Association Ladder
-        </a>. Click on the &quot;Task&quot; column to open the Flight Details
-        window and download the logger file from there.
+        <strong>
+        An improved version of this application is now available
+        at <a href="http://www.glidingweb.org/igcWebview/">Gliding Web.</a>
+        </strong>
     </p>
 
-    <p> &copy; 2015 Alistair Malcolm Green and Richard Brisbourne </p>
+    <p> &copy; 2015-2016 Alistair Malcolm Green and Richard Brisbourne </p>
 
     <noscript>
         <p>
@@ -51,8 +52,7 @@
     <input id="fileControl" type="file" />
 
     <p>
-        <em>Note:</em> The file will be processed entirely within your web browser.
-        Nothing will be uploaded to the Internet.
+        <em>Note:</em> The file will be processed entirely within your web browser. Nothing will be uploaded to the Internet.
     </p>
 
     <div id="errorMessage">
@@ -61,12 +61,12 @@
     <h2> Preferences </h2>
     <p>
         <label for="altitudeUnits">Altitude units:</label>
-        <select id="altitudeUnits"  autocomplete="off">
+        <select id="altitudeUnits" autocomplete="off">
             <option value="metres">Metres</option>
             <option value="feet">Feet</option>
         </select>
     </p>
-    
+
     <p>
         <label for="timeZoneSelect">Time zone:</label>
         <select id="timeZoneSelect">
@@ -85,16 +85,16 @@
             <ul>
             </ul>
         </div>
-        
+
         <div id="mapWrapper">
             <div id="map"></div>
             <div id="slider">
-            <label for="timeSlider">Time:</label>
-            <button id="timeBack">&lt;</button>
-            <input type="range" id="timeSlider" step="1" value="0" min="0" max="100"/>
-            <button id="timeForward">&gt;</button>
-            <p id="timePositionDisplay"></p>
-        </div>
+                <label for="timeSlider">Time:</label>
+                <button id="timeBack">&lt;</button>
+                <input type="range" id="timeSlider" step="1" value="0" min="0" max="100" />
+                <button id="timeForward">&gt;</button>
+                <p id="timePositionDisplay"></p>
+            </div>
         </div>
         <div id="barogram"></div>
     </div>
@@ -114,4 +114,5 @@
         </ul>
     </p>
 </body>
+
 </html>
