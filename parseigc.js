@@ -35,7 +35,8 @@ function parseIGC(igcFile) {
             'LXV': 'LXNAV d.o.o.',
             'WES': 'Westerboer',
             'XCS': 'XCSoar',
-            'ZAN': 'Zander'
+            'ZAN': 'Zander',
+            'XCT': 'XCTrack'
         };
 
         var manufacturerInfo = {
@@ -73,6 +74,24 @@ function parseIGC(igcFile) {
         }
         return new Date(Date.UTC(year, month, day));
     }
+    function extractDate_XCTrack(dateString){
+        // dateString:ddmmyy,xx
+        // In XCTrack format, date is recorded as HFDTEDATE:ddmmyy,xx (xx is digits and can be ignored).
+        
+        var day = parseInt(dateString.substring(0,2), 10);
+        // Javascript numbers months from zero, not 1!
+        var month = parseInt(dateString.substring(2,4), 10) - 1;
+        // The IGC specification has a built-in Millennium Bug (2-digit year).
+        // I will arbitrarily assume that any year before "80" is in the 21st century.
+        var year = parseInt(dateString.substring(4,6), 10);
+
+        if (year < 80) {
+            year += 2000;
+        } else {
+            year += 1900;
+        }
+        return new Date(Date.UTC(year, month, day));
+    }
 
     function parseHeader(headerRecord) {
         var headerSubtypes = {
@@ -88,7 +107,8 @@ function parseIGC(igcFile) {
             'PRS': 'Pressure sensor',
             'FRS': 'Security suspect, use validation program',
             'CID': 'Competition ID',
-            'CCL': 'Competition class'
+            'CCL': 'Competition class',
+            'DTE': 'Date'
         };
 
         var headerName = headerSubtypes[headerRecord.substring(2, 5)];
@@ -231,9 +251,11 @@ function parseIGC(igcFile) {
         name: 'Logger serial number',
         value: manufacturerInfo.serial
     });
-
-    var flightDate = extractDate(igcFile);
-
+    var flightDate;
+    if(manufacturerInfo.manufacturer != "XCTrack"){
+        flightDate = extractDate(igcFile);
+    }
+    
     var lineIndex;
     var positionData;
     var recordType;
@@ -266,6 +288,9 @@ function parseIGC(igcFile) {
                 headerData = parseHeader(currentLine);
                 if (headerData) {
                     model.headers.push(headerData);
+                    if(headerData.name == "Date"){
+                        flightDate = extractDate_XCTrack(headerData.value);
+                    }
                 }
                 break;
         }
