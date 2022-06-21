@@ -35,6 +35,7 @@ function parseIGC(igcFile) {
             'LXV': 'LXNAV d.o.o.',
             'WES': 'Westerboer',
             'XCS': 'XCSoar',
+            'XCT': 'XCTrack',
             'ZAN': 'Zander'
         };
 
@@ -53,8 +54,10 @@ function parseIGC(igcFile) {
 
     // Extracts the flight date from the IGC file.
     function extractDate(igcFile) {
-        // Date is recorded as: HFDTEddmmyy (where HFDTE is a literal and dddmmyy are digits).
-        var dateRecord = igcFile.match(/H[FO]DTE([\d]{2})([\d]{2})([\d]{2})/);
+        // Date is recorded as: HFDTEddmmyy (where HFDTE is a literal and dddmmyy are digits),
+        // OR in the case of XCTrack the format is:
+        // HFDTEDATE:150522,01
+        var dateRecord = igcFile.match(/H[FO]DTE(?:DATE\:)?([\d]{2})([\d]{2})([\d]{2})/);
         if (dateRecord === null) {
             throw new IGCException('The file does not contain a date header.');
         }
